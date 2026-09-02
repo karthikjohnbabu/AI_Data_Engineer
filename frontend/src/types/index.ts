@@ -165,7 +165,7 @@ export interface Integration {
   id: string;
   name: string;
   category: string;
-  status: "connected" | "not_configured" | "error";
+  status: "connected" | "not_configured" | "error" | "mock";
   description: string;
 }
 

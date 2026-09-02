@@ -33,7 +33,7 @@ export default async function IntegrationsPage() {
                     </h3>
                     <StatusBadge
                       status={
-                        integration.status === "connected"
+                        integration.status === "connected" || integration.status === "mock"
                           ? "active"
                           : "inactive"
                       }
@@ -43,9 +43,11 @@ export default async function IntegrationsPage() {
                     {integration.description}
                   </p>
                   <p className="mt-4 text-xs text-slate-600">
-                    {integration.status === "not_configured"
-                      ? "Not configured — add credentials in Settings"
-                      : "Connected"}
+                    {integration.status === "mock"
+                      ? "Mock mode — demo data, swap for real credentials when ready"
+                      : integration.status === "not_configured"
+                        ? "Not configured — add credentials in Settings"
+                        : "Connected"}
                   </p>
                 </div>
               ))}

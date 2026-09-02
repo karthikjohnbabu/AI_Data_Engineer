@@ -6,20 +6,45 @@ import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { getTickets } from "@/services/tickets";
-import type { Ticket, TicketStatus } from "@/types";
+import { getTickets, submitTicket } from "@/services/tickets";
+import type { Ticket, TicketDetail, TicketStatus } from "@/types";
+import { useRouter } from "next/navigation";
 
 export default function TicketsPage() {
+  const router = useRouter();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<TicketStatus | "All">("All");
+  const [showNewTicket, setShowNewTicket] = useState(false);
+  const [newSummary, setNewSummary] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
+  function loadTickets() {
     getTickets()
       .then(setTickets)
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadTickets();
   }, []);
+
+  async function handleSubmitTicket(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newSummary.trim()) return;
+    setSubmitting(true);
+    try {
+      const ticket = await submitTicket(newSummary.trim());
+      setShowNewTicket(false);
+      setNewSummary("");
+      router.push(`/tickets/${ticket.id}`);
+    } catch {
+      alert("Failed to submit ticket. Is the API running?");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   const filtered = useMemo(() => {
     return tickets.filter((ticket) => {
@@ -39,12 +64,41 @@ export default function TicketsPage() {
         title="Tickets"
         description="Jira tickets processed by the AI agent"
         actions={
-          <Button>
+          <Button onClick={() => setShowNewTicket(true)}>
             <Plus className="h-4 w-4" />
             New Ticket
           </Button>
         }
       />
+
+      {showNewTicket && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-lg rounded-xl border border-slate-700 bg-slate-900 p-6">
+            <h2 className="text-lg font-semibold text-white">Submit New Ticket</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Describe the data engineering issue. The agent will investigate automatically.
+            </p>
+            <form onSubmit={handleSubmitTicket} className="mt-4 space-y-4">
+              <textarea
+                value={newSummary}
+                onChange={(e) => setNewSummary(e.target.value)}
+                placeholder="e.g. Glue job timeout on customer_dim load"
+                rows={3}
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
+                required
+              />
+              <div className="flex justify-end gap-3">
+                <Button type="button" variant="secondary" onClick={() => setShowNewTicket(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? "Submitting..." : "Submit & Investigate"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">

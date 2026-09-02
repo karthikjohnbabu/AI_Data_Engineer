@@ -3,8 +3,8 @@
 from fastapi import APIRouter
 
 from data.loader import load_json
-from services.agent_service import merge_ticket_with_run
 from services.run_store import list_deployments
+from services.ticket_service import merge_ticket_with_run
 
 router = APIRouter(prefix="/deployments", tags=["deployments"])
 

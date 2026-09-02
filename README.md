@@ -8,68 +8,84 @@ Internal AI Data Engineering Agent dashboard that automates the full lifecycle o
 Frontend (Next.js)  →  Agent API (FastAPI)  →  Integrations (Jira, Git, AWS, Databricks, ...)
 ```
 
-The UI never calls AWS, Jira, or Git directly. All operations go through the Agent API, allowing the underlying agent engine to be swapped without frontend changes.
-
-## Project Structure
-
-```
-ai-data-engineer/
-├── frontend/          # Next.js dashboard (TypeScript, Tailwind)
-├── backend/           # Python Agent API, agents, workflows, integrations
-├── infrastructure/    # Terraform, Docker, Kubernetes
-├── scripts/           # Setup, migrations, seed data
-└── docs/              # Architecture, API, workflow documentation
-```
+The UI never calls AWS, Jira, or Git directly. All operations go through the Agent API.
 
 ## Quick Start
 
-### Frontend
+### Option 1 — Local development
 
 ```bash
-cd frontend
-npm install
-npm run dev
-```
+# Install dependencies
+make install
 
-Open [http://localhost:3000](http://localhost:3000).
-
-### Backend
-
-```bash
-pip install fastapi "uvicorn[standard]" pydantic pydantic-settings
-cd backend
-python -m uvicorn api.main:app --reload --port 8000
-```
-
-API docs: http://localhost:8000/docs
-
-### Run both (two terminals)
-
-```bash
 # Terminal 1 — API
 make dev-backend
 
 # Terminal 2 — Frontend
 make dev-frontend
+
+# Optional — seed demo agent runs
+make seed-demo
 ```
 
-The frontend reads from `NEXT_PUBLIC_API_URL` (default `http://localhost:8000/api`). If the API is down, it falls back to local mock data.
+- Frontend: http://localhost:3000
+- API docs: http://localhost:8000/docs
+
+### Option 2 — Docker
+
+```bash
+docker compose up --build
+```
+
+## Configuration
+
+Copy `.env.example` to `.env` and adjust:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `JIRA_MODE` | `mock` | `mock` or `jira` (when credentials available) |
+| `GIT_PROVIDER` | `mock` | `mock`, `github`, or `bitbucket` |
+| `LLM_PROVIDER` | `local` | `local`, `bedrock`, `openai`, `anthropic` |
+| `API_KEY` | _(empty)_ | Set to enable API key auth on all endpoints |
 
 ## Pages
 
-| Page | Route | Description |
-|------|-------|-------------|
-| Dashboard | `/` | Metrics, activity charts, resolution breakdown |
-| Tickets | `/tickets` | Searchable ticket table with filters |
-| Ticket Detail | `/tickets/[id]` | Timeline, root cause, diffs, tests, deployments |
-| Skills | `/skills` | Agent capabilities (Glue, Redshift, PySpark, etc.) |
-| Memory | `/memory` | Architecture decisions, standards, incidents, fixes |
+| Page | Route |
+|------|-------|
+| Dashboard | `/` |
+| Tickets | `/tickets` |
+| Runs | `/runs` |
+| Deployments | `/deployments` |
+| Skills | `/skills` |
+| Memory | `/memory` |
+| Reports | `/reports` |
+| Integrations | `/integrations` |
+| Settings | `/settings` |
 
-## Tech Stack
+## Agent Pipeline
 
-- **Frontend:** Next.js 16, TypeScript, Tailwind CSS, Recharts
-- **Backend:** Python, FastAPI (planned)
-- **Infrastructure:** AWS, Terraform, Docker (planned)
+```
+Jira ticket → Triage → Investigation → Coding → Testing → Validation → PR → Deployment
+```
+
+Click **New Ticket** to submit an issue, or **Run Again** on any ticket to re-process.
+
+## Swapping mocks for real integrations
+
+When credentials arrive, update `.env`:
+
+```bash
+JIRA_MODE=jira
+JIRA_URL=https://your-org.atlassian.net
+JIRA_EMAIL=you@company.com
+JIRA_API_TOKEN=your-token
+
+GIT_PROVIDER=github
+GITHUB_TOKEN=ghp_...
+GITHUB_REPO=org/repo
+```
+
+No frontend changes required.
 
 ## License
 

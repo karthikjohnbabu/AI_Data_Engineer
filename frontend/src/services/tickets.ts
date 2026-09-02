@@ -6,6 +6,17 @@ export async function getTickets(): Promise<Ticket[]> {
   return apiFetchSafe("/tickets", tickets);
 }
 
+export async function submitTicket(
+  summary: string,
+  priority: string = "Medium"
+): Promise<TicketDetail> {
+  const result = await apiFetch<{ ticket: TicketDetail }>("/tickets", {
+    method: "POST",
+    body: JSON.stringify({ summary, priority }),
+  });
+  return result.ticket;
+}
+
 export async function getTicketById(id: string): Promise<TicketDetail | null> {
   try {
     return await apiFetch<TicketDetail>(`/tickets/${encodeURIComponent(id)}`);
