@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -13,7 +13,13 @@ import {
 import { Button } from "@/components/common/Button";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ExecutionTimeline } from "@/components/tickets/ExecutionTimeline";
-import { ticketDetails } from "@/data/mock/tickets";
+import {
+  approveTicket,
+  createPullRequest,
+  getTicketById,
+  rejectTicket,
+  runTicketAgain,
+} from "@/services/tickets";
 import type { TicketDetail } from "@/types";
 
 const tabs = [
@@ -30,12 +36,38 @@ export default function TicketDetailPage({
 }: {
   params: { id: string };
 }) {
-  const ticket = ticketDetails[params.id];
+  const [ticket, setTicket] = useState<TicketDetail | null>(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
+
+  useEffect(() => {
+    getTicketById(params.id)
+      .then(setTicket)
+      .finally(() => setLoading(false));
+  }, [params.id]);
+
+  if (loading) {
+    return (
+      <div className="py-12 text-center text-slate-500">Loading ticket...</div>
+    );
+  }
 
   if (!ticket) {
     notFound();
   }
+
+  const handleAction = async (
+    action: () => Promise<void | TicketDetail | null>,
+    refresh = false
+  ) => {
+    const result = await action();
+    if (refresh && result) {
+      setTicket(result);
+    } else if (refresh) {
+      const updated = await getTicketById(ticket.id);
+      if (updated) setTicket(updated);
+    }
+  };
 
   return (
     <div>
@@ -83,19 +115,33 @@ export default function TicketDetailPage({
       {activeTab === "Deployments" && <DeploymentsTab ticket={ticket} />}
 
       <div className="mt-8 flex items-center gap-3 border-t border-slate-700/50 pt-6">
-        <Button variant="success">
+        <Button
+          variant="success"
+          onClick={() => handleAction(() => approveTicket(ticket.id))}
+        >
           <Check className="h-4 w-4" />
           Approve
         </Button>
-        <Button variant="danger">
+        <Button
+          variant="danger"
+          onClick={() => handleAction(() => rejectTicket(ticket.id))}
+        >
           <X className="h-4 w-4" />
           Reject
         </Button>
-        <Button variant="secondary">
+        <Button
+          variant="secondary"
+          onClick={() =>
+            handleAction(() => runTicketAgain(ticket.id), true)
+          }
+        >
           <RefreshCw className="h-4 w-4" />
           Run Again
         </Button>
-        <Button variant="primary">
+        <Button
+          variant="primary"
+          onClick={() => handleAction(() => createPullRequest(ticket.id))}
+        >
           <GitPullRequest className="h-4 w-4" />
           Create PR
         </Button>

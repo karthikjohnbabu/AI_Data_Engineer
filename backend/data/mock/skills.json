@@ -1,0 +1,92 @@
+[
+  {
+    "id": "aws-glue",
+    "name": "AWS Glue",
+    "description": "ETL job authoring, debugging, and optimization for AWS Glue Spark and Python shell jobs.",
+    "category": "AWS",
+    "status": "active",
+    "usageCount": 47,
+    "lastUsed": "2026-08-28T09:15:00Z"
+  },
+  {
+    "id": "redshift",
+    "name": "Redshift",
+    "description": "Query optimization, SCD merges, distribution key analysis, and workload management tuning.",
+    "category": "AWS",
+    "status": "active",
+    "usageCount": 38,
+    "lastUsed": "2026-08-27T14:30:00Z"
+  },
+  {
+    "id": "iceberg",
+    "name": "Iceberg",
+    "description": "Table format management, schema evolution, partition spec changes, and compaction strategies.",
+    "category": "Data Lake",
+    "status": "active",
+    "usageCount": 22,
+    "lastUsed": "2026-08-27T11:00:00Z"
+  },
+  {
+    "id": "pyspark",
+    "name": "PySpark",
+    "description": "Spark job development, UDF optimization, broadcast joins, and partition strategy design.",
+    "category": "Processing",
+    "status": "active",
+    "usageCount": 55,
+    "lastUsed": "2026-08-26T16:45:00Z"
+  },
+  {
+    "id": "scd2",
+    "name": "SCD2",
+    "description": "Slowly changing dimension Type 2 implementations, merge logic, and effective date handling.",
+    "category": "Modelling",
+    "status": "active",
+    "usageCount": 31,
+    "lastUsed": "2026-08-27T14:30:00Z"
+  },
+  {
+    "id": "watermark",
+    "name": "Watermark Analysis",
+    "description": "Incremental load watermark tracking, gap detection, and recovery procedures.",
+    "category": "Pipeline",
+    "status": "active",
+    "usageCount": 19,
+    "lastUsed": "2026-08-25T08:00:00Z"
+  },
+  {
+    "id": "schema-drift",
+    "name": "Schema Drift",
+    "description": "Automated schema change detection, impact analysis, and migration script generation.",
+    "category": "Data Quality",
+    "status": "active",
+    "usageCount": 15,
+    "lastUsed": "2026-08-27T11:00:00Z"
+  },
+  {
+    "id": "reconciliation",
+    "name": "Data Reconciliation",
+    "description": "Source-to-target row count validation, checksum comparison, and variance reporting.",
+    "category": "Data Quality",
+    "status": "active",
+    "usageCount": 28,
+    "lastUsed": "2026-08-26T10:20:00Z"
+  },
+  {
+    "id": "databricks",
+    "name": "Databricks",
+    "description": "Notebook optimization, job cluster sizing, Delta Lake operations, and Unity Catalog management.",
+    "category": "Platform",
+    "status": "active",
+    "usageCount": 33,
+    "lastUsed": "2026-08-26T16:45:00Z"
+  },
+  {
+    "id": "terraform",
+    "name": "Terraform",
+    "description": "Infrastructure as code for data platform resources, drift detection, and module management.",
+    "category": "Infrastructure",
+    "status": "active",
+    "usageCount": 12,
+    "lastUsed": "2026-08-24T13:15:00Z"
+  }
+]

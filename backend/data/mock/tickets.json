@@ -1,0 +1,98 @@
+[
+  {
+    "id": "UKDATA-4821",
+    "summary": "Glue job timeout on uk_digital_dimension load",
+    "status": "In Review",
+    "agentStatus": "Awaiting Review",
+    "confidence": 91,
+    "pr": "#422",
+    "environment": "UAT",
+    "priority": "High",
+    "assignee": "AI Agent",
+    "createdAt": "2026-08-28T09:15:00Z"
+  },
+  {
+    "id": "UKDATA-4819",
+    "summary": "Redshift SCD2 merge failing on customer_dim",
+    "status": "Done",
+    "agentStatus": "PR Merged",
+    "confidence": 96,
+    "pr": "#418",
+    "environment": "Prod",
+    "priority": "Critical",
+    "assignee": "AI Agent",
+    "createdAt": "2026-08-27T14:30:00Z"
+  },
+  {
+    "id": "UKDATA-4815",
+    "summary": "Schema drift detected in iceberg silver layer",
+    "status": "In Progress",
+    "agentStatus": "Investigating",
+    "confidence": 75,
+    "pr": null,
+    "environment": "Dev",
+    "priority": "Medium",
+    "assignee": "AI Agent",
+    "createdAt": "2026-08-27T11:00:00Z"
+  },
+  {
+    "id": "UKDATA-4812",
+    "summary": "Databricks job OOM on large partition aggregation",
+    "status": "In Progress",
+    "agentStatus": "Generating Fix",
+    "confidence": 82,
+    "pr": "#420",
+    "environment": "Dev",
+    "priority": "High",
+    "assignee": "AI Agent",
+    "createdAt": "2026-08-26T16:45:00Z"
+  },
+  {
+    "id": "UKDATA-4808",
+    "summary": "Data reconciliation mismatch in daily sales report",
+    "status": "Failed",
+    "agentStatus": "Failed",
+    "confidence": 45,
+    "pr": null,
+    "environment": "UAT",
+    "priority": "High",
+    "assignee": "AI Agent",
+    "createdAt": "2026-08-26T10:20:00Z"
+  },
+  {
+    "id": "UKDATA-4803",
+    "summary": "Watermark not advancing on incremental load pipeline",
+    "status": "Done",
+    "agentStatus": "Completed",
+    "confidence": 94,
+    "pr": "#415",
+    "environment": "Prod",
+    "priority": "Medium",
+    "assignee": "AI Agent",
+    "createdAt": "2026-08-25T08:00:00Z"
+  },
+  {
+    "id": "UKDATA-4799",
+    "summary": "Terraform drift in Glue connection configuration",
+    "status": "In Review",
+    "agentStatus": "Awaiting Review",
+    "confidence": 88,
+    "pr": "#413",
+    "environment": "UAT",
+    "priority": "Low",
+    "assignee": "AI Agent",
+    "createdAt": "2026-08-24T13:15:00Z"
+  },
+  {
+    "id": "UKDATA-4795",
+    "summary": "PySpark UDF performance degradation in loyalty pipeline",
+    "status": "Done",
+    "agentStatus": "PR Merged",
+    "confidence": 93,
+    "pr": "#410",
+    "environment": "Prod",
+    "priority": "Medium",
+    "assignee": "AI Agent",
+    "createdAt": "2026-08-23T09:30:00Z"
+  }
+]

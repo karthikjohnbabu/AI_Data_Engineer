@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/common/PageHeader";
-import { memoryItems } from "@/data/mock/memory";
+import { getMemoryItems } from "@/services/memory";
 import type { MemoryItem } from "@/types";
 import { formatDate } from "@/utils";
 
@@ -17,14 +17,22 @@ const categoryLabels: Record<MemoryItem["category"], string> = {
 const categories = Object.keys(categoryLabels) as MemoryItem["category"][];
 
 export default function MemoryPage() {
+  const [memoryItems, setMemoryItems] = useState<MemoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<
     MemoryItem["category"] | "all"
   >("all");
 
+  useEffect(() => {
+    getMemoryItems()
+      .then(setMemoryItems)
+      .finally(() => setLoading(false));
+  }, []);
+
   const filtered = useMemo(() => {
     if (activeCategory === "all") return memoryItems;
     return memoryItems.filter((item) => item.category === activeCategory);
-  }, [activeCategory]);
+  }, [memoryItems, activeCategory]);
 
   return (
     <div>
@@ -50,7 +58,10 @@ export default function MemoryPage() {
       </div>
 
       <div className="space-y-4">
-        {filtered.map((item) => (
+        {loading && (
+          <p className="text-center text-slate-500">Loading memory...</p>
+        )}
+        {!loading && filtered.map((item) => (
           <div
             key={item.id}
             className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-5"

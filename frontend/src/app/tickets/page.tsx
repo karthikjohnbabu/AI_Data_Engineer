@@ -1,17 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { tickets } from "@/data/mock/tickets";
+import { getTickets } from "@/services/tickets";
 import type { Ticket, TicketStatus } from "@/types";
 
 export default function TicketsPage() {
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<TicketStatus | "All">("All");
+
+  useEffect(() => {
+    getTickets()
+      .then(setTickets)
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = useMemo(() => {
     return tickets.filter((ticket) => {
@@ -23,7 +31,7 @@ export default function TicketsPage() {
         statusFilter === "All" || ticket.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [search, statusFilter]);
+  }, [tickets, search, statusFilter]);
 
   return (
     <div>
@@ -79,10 +87,17 @@ export default function TicketsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700/30">
-            {filtered.map((ticket) => (
+            {loading && (
+              <tr>
+                <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
+                  Loading tickets...
+                </td>
+              </tr>
+            )}
+            {!loading && filtered.map((ticket) => (
               <TicketRow key={ticket.id} ticket={ticket} />
             ))}
-            {filtered.length === 0 && (
+            {!loading && filtered.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
                   No tickets match your filters.

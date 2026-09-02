@@ -3,6 +3,7 @@ import {
   dashboardMetrics,
   resolutionBreakdown,
 } from "@/data/mock/dashboard";
+import { apiFetchSafe } from "@/services/api";
 import type {
   ActivityDataPoint,
   DashboardMetrics,
@@ -10,13 +11,13 @@ import type {
 } from "@/types";
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
-  return Promise.resolve(dashboardMetrics);
+  return apiFetchSafe("/dashboard/metrics", dashboardMetrics);
 }
 
 export async function getActivityData(): Promise<ActivityDataPoint[]> {
-  return Promise.resolve(activityData);
+  return apiFetchSafe("/dashboard/activity", activityData);
 }
 
 export async function getResolutionBreakdown(): Promise<ResolutionBreakdown> {
-  return Promise.resolve(resolutionBreakdown);
+  return apiFetchSafe("/dashboard/resolution", resolutionBreakdown);
 }

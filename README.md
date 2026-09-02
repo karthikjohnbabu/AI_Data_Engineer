@@ -33,15 +33,27 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Backend (coming soon)
+### Backend
 
 ```bash
+pip install fastapi "uvicorn[standard]" pydantic pydantic-settings
 cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -e .
-uvicorn api.main:app --reload --port 8000
+python -m uvicorn api.main:app --reload --port 8000
 ```
+
+API docs: http://localhost:8000/docs
+
+### Run both (two terminals)
+
+```bash
+# Terminal 1 — API
+make dev-backend
+
+# Terminal 2 — Frontend
+make dev-frontend
+```
+
+The frontend reads from `NEXT_PUBLIC_API_URL` (default `http://localhost:8000/api`). If the API is down, it falls back to local mock data.
 
 ## Pages
 

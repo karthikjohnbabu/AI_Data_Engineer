@@ -1,0 +1,40 @@
+{
+  "metrics": {
+    "ticketsReceived": 184,
+    "ticketsReceivedChange": 12,
+    "investigated": 171,
+    "investigatedChange": 9,
+    "rootCausesIdentified": 158,
+    "rootCausesChange": 11,
+    "prsCreated": 119,
+    "prsCreatedChange": 15,
+    "testsPassed": 312,
+    "testsPassedChange": 27,
+    "deployed": 94,
+    "deployedChange": 8,
+    "engineeringHoursSaved": 611,
+    "hoursSavedChange": 18,
+    "avgResolutionMinutes": 38,
+    "resolutionTimeChange": -42,
+    "testsExecuted": 312,
+    "testsExecutedChange": 27,
+    "costSavings": 42770,
+    "costSavingsChange": 15
+  },
+  "activity": [
+    { "date": "Aug 5", "tickets": 12, "deployed": 8 },
+    { "date": "Aug 8", "tickets": 18, "deployed": 11 },
+    { "date": "Aug 11", "tickets": 15, "deployed": 10 },
+    { "date": "Aug 14", "tickets": 22, "deployed": 14 },
+    { "date": "Aug 17", "tickets": 19, "deployed": 12 },
+    { "date": "Aug 20", "tickets": 25, "deployed": 16 },
+    { "date": "Aug 23", "tickets": 21, "deployed": 15 },
+    { "date": "Aug 26", "tickets": 28, "deployed": 18 },
+    { "date": "Aug 29", "tickets": 24, "deployed": 17 }
+  ],
+  "resolution": {
+    "success": 94,
+    "inProgress": 4,
+    "failed": 2
+  }
+}
