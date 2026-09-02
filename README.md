@@ -24,6 +24,43 @@ All of this is visible in one dashboard — not a chatbot.
 
 ---
 
+## Features (Prasath Anna requirements)
+
+| Feature | Status | Location |
+|---------|--------|----------|
+| Tech stack detection (AWS, Jira, Bitbucket, Jenkins) | Done | `/tech-stack` |
+| AWS Dev / UAT / Prod environment display | Done | `/tech-stack` |
+| Credential management (stored in backend) | Done | `/settings` |
+| Domain baselines (Pharma, Finance, Betting, Nursery) | Done | `/onboarding` |
+| New vs existing project setup | Done | `/onboarding` |
+| Jira Phase 1–4 phased checklist | Done | Ticket detail + `/workflows` |
+| Natural language workflow definition | Done | `/workflows` |
+| Adaptive learning & recommendations | Done | Dashboard banner |
+| Human-in-the-loop approvals | Done | Dashboard banner |
+| Slack integration (bot + approval gate) | Done | API `/api/notifications/slack/tag` |
+| Teams integration (webhook relay) | Done | API `/api/notifications/teams/approval` |
+| Real Jira / Git / LLM / SSO | Pending | Needs credentials |
+
+### Domain baselines
+
+- **Pharmaceutical** — GxP, audit trails, PHI masking
+- **Finance** — SOX, reconciliation, regulatory reporting
+- **Betting** — Betfred/BBees, incremental loads, data freeze (Busybees context)
+- **Nursery** — enrollment, attendance, Ofsted compliance
+
+### Jira phased workflow
+
+| Phase | Tasks |
+|-------|-------|
+| **Phase 1** | Triage and analysis |
+| **Phase 2** | Dev testing, Jira testing, validation, merge to dev, PR + README |
+| **Phase 3** | PR movement, localhost/dev deployments |
+| **Phase 4** | Ticket closure, post-validation, memory update |
+
+Custom phases can be defined in natural language at `/workflows`.
+
+---
+
 ## Architecture
 
 The frontend never talks to Jira, Git, or AWS directly. Everything goes through the Agent API so the underlying agent engine can be swapped without UI changes.
@@ -159,6 +196,13 @@ npm run dev
 
 Open the dashboard: **http://localhost:3000**
 
+On first visit you will be guided through **Project Setup** (`/onboarding`):
+1. Select domain (Betting for Betfred/BBees)
+2. Choose new or existing project
+3. Enter client name and context
+
+Then configure credentials at **Settings** and view your stack at **Tech Stack**.
+
 ### 6. Seed demo data (optional)
 
 Pre-run agents on sample tickets so the Runs and Reports pages have data:
@@ -217,17 +261,20 @@ If you ran `make seed-demo`, open:
 
 | Page | Route | Description |
 |------|-------|-------------|
-| Dashboard | `/` | Metrics, activity charts, resolution breakdown |
+| Dashboard | `/` | Metrics, recommendations, pending approvals |
+| Onboarding | `/onboarding` | Domain + new/existing project setup (first visit) |
+| Tech Stack | `/tech-stack` | Detected services, AWS Dev/UAT/Prod |
+| Settings | `/settings` | AWS, Jira, Bitbucket, Jenkins, Slack, Teams credentials |
 | Tickets | `/tickets` | Searchable ticket table; submit new tickets |
-| Ticket detail | `/tickets/[id]` | Timeline, root cause, diffs, tests, deployments |
+| Ticket detail | `/tickets/[id]` | Timeline, phased checklist, diffs, tests |
+| Workflows | `/workflows` | Phase 1–4 checklist; define custom via natural language |
 | Runs | `/runs` | Agent execution history |
 | Deployments | `/deployments` | DEV → UAT → PROD pipeline |
-| Skills | `/skills` | Agent capabilities (Glue, Redshift, PySpark, etc.) |
+| Skills | `/skills` | Agent capabilities (auto-updated from patterns) |
 | Memory | `/memory` | Architecture decisions, standards, incidents |
 | Reports | `/reports` | Success rate, classifications, recent runs |
-| Integrations | `/integrations` | Jira, Git, AWS, Databricks status |
-| Settings | `/settings` | Platform configuration (placeholder) |
-| Login | `/login` | API key sign-in (only when `API_KEY` is set) |
+| Integrations | `/integrations` | Jira, Git, AWS, Slack, Teams status |
+| Login | `/login` | API key sign-in (when `API_KEY` is set) |
 
 ---
 
@@ -434,16 +481,19 @@ CORS_ORIGINS=http://localhost:3000
 
 | Item | Status | Needs |
 |------|--------|-------|
-| Frontend dashboard | Done | — |
-| Agent API | Done | — |
-| Agent pipeline (triage → deploy) | Done | — |
-| SQLite persistence | Done | — |
-| Mock Jira / Git | Done | — |
-| Docker Compose | Done | — |
+| Tech stack display + credential UI | Done | — |
+| Domain baselines + onboarding | Done | — |
+| Jira Phase 1–4 workflow | Done | — |
+| NL workflow builder | Done | — |
+| Adaptive recommendations | Done | — |
+| Slack / Teams human-in-the-loop | Done | Webhook URLs in Settings |
 | Real Jira integration | Pending | API token + project key |
 | Real GitHub / Bitbucket | Pending | PAT + repo name |
 | LLM (Bedrock / OpenAI) | Pending | Cloud credentials |
 | SSO auth | Pending | Azure AD / Okta |
+| AWS/Azure auto-provisioning (new projects) | Planned | Cloud credentials |
+| Formal product name + GTM | Business | Prasath Anna decision |
+| LinkedIn CEO/CTO outreach | Business | Marketing setup |
 
 ---
 

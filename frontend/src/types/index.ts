@@ -182,3 +182,85 @@ export interface ReportSummary {
     completedAt: string | null;
   }[];
 }
+
+export interface TechStackEnvironment {
+  name: string;
+  status: string;
+  region?: string;
+  vpc?: string;
+}
+
+export interface TechStackService {
+  name: string;
+  category: string;
+  status: string;
+  environments?: TechStackEnvironment[];
+  note?: string;
+}
+
+export interface TechStack {
+  detected: boolean;
+  cloud: string;
+  services: TechStackService[];
+  domain: string;
+  client: string;
+}
+
+export interface CredentialService {
+  service: string;
+  configured: boolean;
+  maskedFields: Record<string, string>;
+  updatedAt: string | null;
+}
+
+export interface ProjectConfig {
+  domain: string;
+  projectType: "new" | "existing";
+  context: string;
+  clientName: string;
+  onboarded: boolean;
+  updatedAt?: string;
+}
+
+export interface DomainBaseline {
+  id: string;
+  name: string;
+  description: string;
+  skills: string[];
+  rules: string[];
+  memories: string[];
+}
+
+export interface WorkflowPhase {
+  id: string;
+  name: string;
+  tasks: string[];
+}
+
+export interface WorkflowDefinition {
+  id: string;
+  name: string;
+  description: string;
+  phases: WorkflowPhase[];
+  custom?: boolean;
+}
+
+export interface Recommendation {
+  id: string;
+  title: string;
+  message: string;
+  category: string;
+  priority: "high" | "medium" | "low";
+  dismissed: boolean;
+  createdAt: string;
+}
+
+export interface PendingAction {
+  id: string;
+  source: string;
+  ticket_id: string | null;
+  action: string;
+  message: string;
+  status: string;
+  created_at: string;
+}

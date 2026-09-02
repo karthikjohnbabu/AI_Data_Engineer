@@ -1,0 +1,15 @@
+{
+  "id": "pharmaceutical",
+  "name": "Pharmaceutical",
+  "description": "GxP-compliant data pipelines, clinical trial data, regulatory reporting",
+  "skills": ["data-quality", "reconciliation", "schema-drift", "scd2"],
+  "rules": [
+    "All PHI must be masked before leaving secure VPC",
+    "Audit trail required for every data transformation",
+    "Validation must pass 21 CFR Part 11 checks before prod deploy"
+  ],
+  "memories": [
+    "FDA submissions require immutable audit logs on all ETL jobs",
+    "Patient data uses surrogate keys — never store raw identifiers in gold layer"
+  ]
+}

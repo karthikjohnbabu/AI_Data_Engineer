@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import {
   BarChart3,
   Brain,
+  Cloud,
+  GitBranch,
   LayoutDashboard,
   Play,
   Plug,
@@ -20,6 +22,8 @@ const navItems = [
   { href: "/tickets", label: "Tickets", icon: Ticket },
   { href: "/runs", label: "Runs", icon: Play },
   { href: "/deployments", label: "Deployments", icon: Rocket },
+  { href: "/tech-stack", label: "Tech Stack", icon: Cloud },
+  { href: "/workflows", label: "Workflows", icon: GitBranch },
   { href: "/skills", label: "Skills", icon: Wrench },
   { href: "/memory", label: "Memory", icon: Brain },
   { href: "/reports", label: "Reports", icon: BarChart3 },

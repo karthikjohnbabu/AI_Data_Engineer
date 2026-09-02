@@ -1,8 +1,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { AuthGuard } from "@/components/common/AuthGuard";
+import { PendingActionsPanel } from "@/components/common/PendingActionsPanel";
+import { RecommendationsBanner } from "@/components/common/RecommendationsBanner";
 import { Sidebar } from "@/components/common/Sidebar";
+import { AuthGuard } from "@/components/common/AuthGuard";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -17,7 +19,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <div className="flex h-screen overflow-hidden bg-slate-950">
         <Sidebar />
         <main className="flex-1 overflow-y-auto">
-          <div className="p-6 lg:p-8">{children}</div>
+          <div className="p-6 lg:p-8">
+            <PendingActionsPanel />
+            <RecommendationsBanner />
+            {children}
+          </div>
         </main>
       </div>
     </AuthGuard>

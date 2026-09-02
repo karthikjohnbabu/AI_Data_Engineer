@@ -1,0 +1,15 @@
+{
+  "id": "finance",
+  "name": "Finance",
+  "description": "Regulatory reporting, trade data, risk analytics, SOX compliance",
+  "skills": ["reconciliation", "scd2", "redshift", "data-quality"],
+  "rules": [
+    "End-of-day reconciliation must complete before 06:00 UTC",
+    "All monetary amounts stored as DECIMAL(18,4)",
+    "Segregation of duties: dev cannot approve prod deployments"
+  ],
+  "memories": [
+    "MiFID II reporting requires T+1 trade reconciliation",
+    "GL postings use double-entry validation on every load"
+  ]
+}

@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.middleware.auth import APIKeyMiddleware
-from api.routes import auth, dashboard, deployments, integrations, memory, reports, runs, skills, tickets
+from api.routes import auth, dashboard, deployments, integrations, memory, notifications, platform, reports, runs, skills, tickets
 from config.settings import get_settings
 from database.db import init_db
 
@@ -26,7 +26,7 @@ settings = get_settings()
 app = FastAPI(
     title="AI Data Engineer — Agent API",
     description="REST API for the AI Data Engineering Agent platform",
-    version="0.3.0",
+    version="0.4.0",
     lifespan=lifespan,
 )
 
@@ -47,14 +47,15 @@ app.include_router(deployments.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(integrations.router, prefix="/api")
 app.include_router(skills.router, prefix="/api")
-app.include_router(memory.router, prefix="/api")
+app.include_router(platform.router, prefix="/api")
+app.include_router(notifications.router, prefix="/api")
 
 
 @app.get("/api/health")
 async def health_check():
     return {
         "status": "ok",
-        "version": "0.3.0",
+        "version": "0.4.0",
         "jiraMode": settings.jira_mode,
         "gitProvider": settings.git_provider,
         "llmProvider": settings.llm_provider,

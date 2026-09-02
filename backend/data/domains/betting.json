@@ -1,0 +1,18 @@
+{
+  "id": "betting",
+  "name": "Betting & Gaming",
+  "description": "Betfred, BBees — high-volume transactional data, real-time odds, customer analytics",
+  "skills": ["aws-glue", "redshift", "pyspark", "reconciliation", "watermark", "databricks"],
+  "rules": [
+    "Incremental loads only — never full extract unless approved",
+    "Data freeze period enforced after prod migration",
+    "Source surname/record changes handled via delta row updates only",
+    "Dev → UAT → Prod promotion requires human approval"
+  ],
+  "memories": [
+    "BBees/Betfred shared data lake: client bronze zones, shared silver/gold",
+    "Production migration completed — incremental loads for source changes (e.g. 25 row updates)",
+    "Post-load data freeze prevents unauthorized source changes",
+    "New buyers pipeline starting — expect schema extensions on customer_dim"
+  ]
+}

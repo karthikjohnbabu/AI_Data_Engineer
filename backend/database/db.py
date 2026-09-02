@@ -1,4 +1,4 @@
-"""SQLite database setup and connection management."""
+"""Extended database schema for credentials, onboarding, workflows, and recommendations."""
 
 import json
 import sqlite3
@@ -37,6 +37,51 @@ CREATE TABLE IF NOT EXISTS deployments (
     timestamp   TEXT,
     created_at  TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS credentials (
+    service     TEXT PRIMARY KEY,
+    data        TEXT NOT NULL,
+    updated_at  TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS project_config (
+    id          INTEGER PRIMARY KEY CHECK (id = 1),
+    domain      TEXT NOT NULL DEFAULT 'betting',
+    project_type TEXT NOT NULL DEFAULT 'existing',
+    context     TEXT NOT NULL DEFAULT '',
+    client_name TEXT NOT NULL DEFAULT '',
+    onboarded   INTEGER NOT NULL DEFAULT 0,
+    updated_at  TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS workflows (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    phases      TEXT NOT NULL,
+    created_at  TEXT NOT NULL,
+    updated_at  TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS recommendations (
+    id          TEXT PRIMARY KEY,
+    title       TEXT NOT NULL,
+    message     TEXT NOT NULL,
+    category    TEXT NOT NULL,
+    priority    TEXT NOT NULL DEFAULT 'medium',
+    dismissed   INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS pending_actions (
+    id          TEXT PRIMARY KEY,
+    source      TEXT NOT NULL,
+    ticket_id   TEXT,
+    action      TEXT NOT NULL,
+    message     TEXT NOT NULL,
+    status      TEXT NOT NULL DEFAULT 'pending',
+    created_at  TEXT NOT NULL
+);
 """
 
 
@@ -53,13 +98,11 @@ def init_db() -> None:
         conn.commit()
 
 
-def row_to_dict(row: sqlite3.Row) -> dict:
-    return dict(row)
-
-
 def dumps(data) -> str:
     return json.dumps(data)
 
 
 def loads(data: str):
-    return json.loads(data) if data else []
+    if not data:
+        return []
+    return json.loads(data)

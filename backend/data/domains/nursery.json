@@ -1,0 +1,15 @@
+{
+  "id": "nursery",
+  "name": "Nursery / Childcare",
+  "description": "Enrollment systems, attendance tracking, parent communications, compliance reporting",
+  "skills": ["sql", "data-quality", "schema-drift", "reconciliation"],
+  "rules": [
+    "Child PII must never appear in logs or non-encrypted storage",
+    "Attendance records require same-day reconciliation",
+    "Ofsted reporting exports must match gold layer exactly"
+  ],
+  "memories": [
+    "Enrollment peaks in September — scale Glue workers proactively",
+    "Parent contact details use SCD2 with email as business key"
+  ]
+}

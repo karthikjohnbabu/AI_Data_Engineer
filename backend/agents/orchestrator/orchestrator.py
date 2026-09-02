@@ -6,6 +6,7 @@ from agents.testing.agent import run_tests
 from agents.triage.classifier import classify_ticket
 from agents.validation.agent import run_validation
 from models.agent_run import AgentRunResult, RunStatus, TimelineStep, utc_now
+from database.platform_repository import create_pending_action
 from services.run_store import save_deployment, save_run, save_ticket_override
 
 
@@ -113,5 +114,12 @@ def run_ticket_pipeline(ticket_id: str, summary: str) -> AgentRunResult:
             "timestamp": utc_now(),
             "createdAt": utc_now(),
         })
+
+    create_pending_action(
+        source="agent",
+        action="review_fix",
+        message=f"Agent completed analysis for {ticket_id}. Review fix and approve deployment to UAT.",
+        ticket_id=ticket_id,
+    )
 
     return result

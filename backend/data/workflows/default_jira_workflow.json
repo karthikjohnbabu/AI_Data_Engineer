@@ -1,0 +1,52 @@
+{
+  "id": "default-jira-workflow",
+  "name": "Standard Jira Phased Workflow",
+  "description": "Phase 1–4 checklist as defined with Prasath Anna",
+  "phases": [
+    {
+      "id": "phase-1",
+      "name": "Phase 1 — Triage & Analysis",
+      "tasks": [
+        "Jira ticket received and parsed",
+        "Severity and priority classified",
+        "Architecture and memory context loaded",
+        "Root cause analysis completed",
+        "Impact assessment documented"
+      ]
+    },
+    {
+      "id": "phase-2",
+      "name": "Phase 2 — Dev Testing & Validation",
+      "tasks": [
+        "Fix generated and code reviewed",
+        "Dev environment testing completed",
+        "Jira test cases updated",
+        "Validation checks passed (row count, schema, DQ)",
+        "Merged to dev branch",
+        "PR prepared with README.md updates"
+      ]
+    },
+    {
+      "id": "phase-3",
+      "name": "Phase 3 — PR & Deployment",
+      "tasks": [
+        "PR created and linked to Jira",
+        "Code review completed",
+        "Deployed to localhost / dev environment",
+        "UAT deployment approved",
+        "Integration tests passed in UAT"
+      ]
+    },
+    {
+      "id": "phase-4",
+      "name": "Phase 4 — Closure & Post-Validation",
+      "tasks": [
+        "Prod deployment completed",
+        "Post-deployment data validation passed",
+        "Reconciliation confirmed 100%",
+        "Jira ticket transitioned to Done",
+        "Post-mortem / lessons learned recorded in memory"
+      ]
+    }
+  ]
+}
