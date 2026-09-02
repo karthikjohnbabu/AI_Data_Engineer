@@ -1,0 +1,80 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { PageHeader } from "@/components/common/PageHeader";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { getDeployments } from "@/services/deployments";
+import type { Deployment } from "@/types";
+import { formatDate } from "@/utils";
+
+export default function DeploymentsPage() {
+  const [deployments, setDeployments] = useState<Deployment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getDeployments()
+      .then(setDeployments)
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div>
+      <PageHeader
+        title="Deployments"
+        description="DEV → UAT → PROD pipeline across all tickets"
+      />
+
+      <div className="overflow-hidden rounded-xl border border-slate-700/50">
+        <table className="w-full text-left text-sm">
+          <thead className="border-b border-slate-700/50 bg-slate-800/80">
+            <tr>
+              <th className="px-4 py-3 font-medium text-slate-400">Ticket</th>
+              <th className="px-4 py-3 font-medium text-slate-400">Environment</th>
+              <th className="px-4 py-3 font-medium text-slate-400">Status</th>
+              <th className="px-4 py-3 font-medium text-slate-400">Approved By</th>
+              <th className="px-4 py-3 font-medium text-slate-400">Timestamp</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-700/30">
+            {loading && (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                  Loading deployments...
+                </td>
+              </tr>
+            )}
+            {!loading && deployments.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                  No deployments yet. Run an agent on a ticket to trigger the pipeline.
+                </td>
+              </tr>
+            )}
+            {!loading &&
+              deployments.map((dep) => (
+                <tr key={dep.id} className="bg-slate-800/30 hover:bg-slate-800/60">
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/tickets/${dep.ticketId}`}
+                      className="font-medium text-blue-400 hover:text-blue-300"
+                    >
+                      {dep.ticketId}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 font-medium text-white">{dep.environment}</td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={dep.status} />
+                  </td>
+                  <td className="px-4 py-3 text-slate-400">{dep.approvedBy ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-500">
+                    {dep.timestamp ? formatDate(dep.timestamp) : "—"}
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

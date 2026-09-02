@@ -31,6 +31,9 @@ class AgentRunResult(BaseModel):
     confidence: int
     impacted_files: list[dict[str, Any]] = Field(default_factory=list)
     timeline: list[TimelineStep] = Field(default_factory=list)
+    code_changes: list[dict[str, Any]] = Field(default_factory=list)
+    test_results: list[dict[str, Any]] = Field(default_factory=list)
+    data_validation: list[dict[str, Any]] = Field(default_factory=list)
     summary: str = ""
     completed_at: str | None = None
 

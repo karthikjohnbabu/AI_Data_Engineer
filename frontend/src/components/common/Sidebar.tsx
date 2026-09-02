@@ -3,8 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BarChart3,
   Brain,
   LayoutDashboard,
+  Play,
+  Plug,
+  Rocket,
   Settings,
   Ticket,
   Wrench,
@@ -14,8 +18,12 @@ import { cn } from "@/utils";
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/tickets", label: "Tickets", icon: Ticket },
+  { href: "/runs", label: "Runs", icon: Play },
+  { href: "/deployments", label: "Deployments", icon: Rocket },
   { href: "/skills", label: "Skills", icon: Wrench },
   { href: "/memory", label: "Memory", icon: Brain },
+  { href: "/reports", label: "Reports", icon: BarChart3 },
+  { href: "/integrations", label: "Integrations", icon: Plug },
 ];
 
 export function Sidebar() {

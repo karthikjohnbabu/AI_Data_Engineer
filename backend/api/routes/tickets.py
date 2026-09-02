@@ -4,7 +4,14 @@ from fastapi import APIRouter, HTTPException
 
 from data.loader import load_json
 from models.agent_run import AgentRunResult
-from services.agent_service import get_agent_run, merge_ticket_with_run, run_agent
+from services.agent_service import (
+    approve_ticket,
+    create_pr,
+    get_agent_run,
+    merge_ticket_with_run,
+    reject_ticket,
+    run_agent,
+)
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 
@@ -36,7 +43,7 @@ def _build_detail(ticket: dict) -> dict:
 @router.get("")
 async def list_tickets():
     tickets = load_json("tickets.json")
-    return [merge_ticket_with_run(t) for t in tickets]
+    return [_build_detail(t) for t in tickets]
 
 
 @router.get("/{ticket_id}")
@@ -57,13 +64,13 @@ async def get_ticket_run(ticket_id: str) -> AgentRunResult:
 
 
 @router.post("/{ticket_id}/approve")
-async def approve_ticket(ticket_id: str):
-    return {"ticketId": ticket_id, "action": "approved", "status": "ok"}
+async def approve(ticket_id: str):
+    return approve_ticket(ticket_id)
 
 
 @router.post("/{ticket_id}/reject")
-async def reject_ticket(ticket_id: str):
-    return {"ticketId": ticket_id, "action": "rejected", "status": "ok"}
+async def reject(ticket_id: str):
+    return reject_ticket(ticket_id)
 
 
 @router.post("/{ticket_id}/run-again")
@@ -76,5 +83,5 @@ async def run_again(ticket_id: str):
 
 
 @router.post("/{ticket_id}/create-pr")
-async def create_pr(ticket_id: str):
-    return {"ticketId": ticket_id, "action": "create_pr", "status": "queued"}
+async def create_pull_request(ticket_id: str):
+    return create_pr(ticket_id)

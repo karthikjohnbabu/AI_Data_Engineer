@@ -36,16 +36,18 @@ export async function getTicketById(id: string): Promise<TicketDetail | null> {
   }
 }
 
-export async function approveTicket(id: string): Promise<void> {
+export async function approveTicket(id: string): Promise<TicketDetail | null> {
   await apiFetch(`/tickets/${encodeURIComponent(id)}/approve`, {
     method: "POST",
   });
+  return getTicketById(id);
 }
 
-export async function rejectTicket(id: string): Promise<void> {
+export async function rejectTicket(id: string): Promise<TicketDetail | null> {
   await apiFetch(`/tickets/${encodeURIComponent(id)}/reject`, {
     method: "POST",
   });
+  return getTicketById(id);
 }
 
 export async function runTicketAgain(id: string): Promise<TicketDetail | null> {
@@ -55,8 +57,9 @@ export async function runTicketAgain(id: string): Promise<TicketDetail | null> {
   return getTicketById(id);
 }
 
-export async function createPullRequest(id: string): Promise<void> {
+export async function createPullRequest(id: string): Promise<TicketDetail | null> {
   await apiFetch(`/tickets/${encodeURIComponent(id)}/create-pr`, {
     method: "POST",
   });
+  return getTicketById(id);
 }

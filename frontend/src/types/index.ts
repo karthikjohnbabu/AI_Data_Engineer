@@ -139,3 +139,46 @@ export interface MemoryItem {
   updatedAt: string;
   source: string;
 }
+
+export interface AgentRun {
+  ticketId: string;
+  status: "queued" | "running" | "completed" | "failed";
+  classification: string;
+  severity: string;
+  rootCause: string;
+  confidence: number;
+  summary: string;
+  completedAt: string | null;
+}
+
+export interface Deployment {
+  id: string;
+  ticketId: string;
+  environment: string;
+  status: "completed" | "in_progress" | "pending" | "failed";
+  approvedBy: string | null;
+  timestamp: string | null;
+  createdAt: string;
+}
+
+export interface Integration {
+  id: string;
+  name: string;
+  category: string;
+  status: "connected" | "not_configured" | "error";
+  description: string;
+}
+
+export interface ReportSummary {
+  metrics: DashboardMetrics;
+  agentRuns: number;
+  successRate: number;
+  topClassifications: { classification: string; count: number }[];
+  recentRuns: {
+    ticketId: string;
+    classification: string;
+    confidence: number;
+    status: string;
+    completedAt: string | null;
+  }[];
+}

@@ -117,14 +117,18 @@ export default function TicketDetailPage({
       <div className="mt-8 flex items-center gap-3 border-t border-slate-700/50 pt-6">
         <Button
           variant="success"
-          onClick={() => handleAction(() => approveTicket(ticket.id))}
+          onClick={() =>
+            handleAction(() => approveTicket(ticket.id), true)
+          }
         >
           <Check className="h-4 w-4" />
           Approve
         </Button>
         <Button
           variant="danger"
-          onClick={() => handleAction(() => rejectTicket(ticket.id))}
+          onClick={() =>
+            handleAction(() => rejectTicket(ticket.id), true)
+          }
         >
           <X className="h-4 w-4" />
           Reject
@@ -140,7 +144,9 @@ export default function TicketDetailPage({
         </Button>
         <Button
           variant="primary"
-          onClick={() => handleAction(() => createPullRequest(ticket.id))}
+          onClick={() =>
+            handleAction(() => createPullRequest(ticket.id), true)
+          }
         >
           <GitPullRequest className="h-4 w-4" />
           Create PR

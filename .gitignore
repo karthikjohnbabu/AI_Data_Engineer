@@ -52,3 +52,7 @@ npm-debug.log*
 *.pyc
 .mypy_cache/
 .ruff_cache/
+
+# Database
+*.db
+backend/data/agent.db
