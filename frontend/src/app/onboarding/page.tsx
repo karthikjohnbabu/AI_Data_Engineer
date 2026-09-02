@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/common/Button";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -18,6 +17,7 @@ export default function OnboardingPage() {
   const [clientName, setClientName] = useState("");
   const [context, setContext] = useState("");
   const [saving, setSaving] = useState(false);
+  const [provisionNote, setProvisionNote] = useState("");
 
   useEffect(() => {
     getDomains().then(setDomains);
@@ -33,7 +33,10 @@ export default function OnboardingPage() {
 
   async function handleComplete() {
     setSaving(true);
-    await saveOnboarding({ domain, projectType, context, clientName, onboarded: true });
+    const result = await saveOnboarding({ domain, projectType, context, clientName, onboarded: true });
+    if (projectType === "new" && result?.provisionJob?.resources?.note) {
+      setProvisionNote(result.provisionJob.resources.note);
+    }
     setSaving(false);
     router.push("/tech-stack");
   }

@@ -39,7 +39,7 @@ All of this is visible in one dashboard — not a chatbot.
 | Human-in-the-loop approvals | Done | Dashboard banner |
 | Slack integration (bot + approval gate) | Done | API `/api/notifications/slack/tag` |
 | Teams integration (webhook relay) | Done | API `/api/notifications/teams/approval` |
-| Real Jira / Git / LLM / SSO | Pending | Needs credentials |
+| Real Jira / Git / LLM / SSO | Ready | Credentials in Settings or `.env` |
 
 ### Domain baselines
 
@@ -487,13 +487,17 @@ CORS_ORIGINS=http://localhost:3000
 | NL workflow builder | Done | — |
 | Adaptive recommendations | Done | — |
 | Slack / Teams human-in-the-loop | Done | Webhook URLs in Settings |
-| Real Jira integration | Pending | API token + project key |
-| Real GitHub / Bitbucket | Pending | PAT + repo name |
-| LLM (Bedrock / OpenAI) | Pending | Cloud credentials |
+| Real Jira integration | Ready | Save creds in Settings or set `JIRA_MODE=jira` |
+| Real GitHub / Bitbucket | Ready | Save creds in Settings or set `GIT_PROVIDER` |
+| LLM (Bedrock / OpenAI) | Ready | Set `LLM_PROVIDER=openai` or `bedrock` |
+| Credential encryption at rest | Done | Set `CREDENTIALS_SECRET_KEY` in `.env` |
+| AWS auto-provisioning (new projects) | Done | Triggered on new-project onboarding |
+| Daily skill learning scheduler | Done | Runs at 23:00 UTC |
 | SSO auth | Pending | Azure AD / Okta |
-| AWS/Azure auto-provisioning (new projects) | Planned | Cloud credentials |
-| Formal product name + GTM | Business | Prasath Anna decision |
-| LinkedIn CEO/CTO outreach | Business | Marketing setup |
+| Formal product name + GTM | Business | See `docs/GTM.md` |
+| LinkedIn CEO/CTO outreach | Business | See `docs/GTM.md` |
+| Team requirements doc | Done | `docs/REQUIREMENTS.md` |
+| Demo script | Done | `docs/DEMO_SCRIPT.md` |
 
 ---
 

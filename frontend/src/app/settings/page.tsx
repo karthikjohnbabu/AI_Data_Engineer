@@ -27,6 +27,10 @@ const CREDENTIAL_FIELDS: Record<string, { key: string; label: string; type?: str
     { key: "repo", label: "Repository" },
     { key: "appPassword", label: "App Password", type: "password" },
   ],
+  github: [
+    { key: "token", label: "Personal Access Token", type: "password" },
+    { key: "repo", label: "Repository (org/repo)" },
+  ],
   jenkins: [
     { key: "url", label: "Jenkins URL" },
     { key: "username", label: "Username" },

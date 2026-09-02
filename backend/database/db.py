@@ -82,6 +82,25 @@ CREATE TABLE IF NOT EXISTS pending_actions (
     status      TEXT NOT NULL DEFAULT 'pending',
     created_at  TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS provisioning_jobs (
+    id           TEXT PRIMARY KEY,
+    status       TEXT NOT NULL,
+    cloud        TEXT NOT NULL,
+    resources    TEXT NOT NULL,
+    created_at   TEXT NOT NULL,
+    completed_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS learned_skills (
+    id           TEXT PRIMARY KEY,
+    name         TEXT NOT NULL,
+    description  TEXT NOT NULL,
+    category     TEXT NOT NULL,
+    usage_count  INTEGER NOT NULL DEFAULT 0,
+    auto_generated INTEGER NOT NULL DEFAULT 1,
+    created_at   TEXT NOT NULL
+);
 """
 
 

@@ -11,6 +11,7 @@ from database.platform_repository import (
     get_project_config,
     list_domains,
     list_pending_actions,
+    list_provisioning_jobs,
     list_recommendations,
     list_workflows,
     resolve_pending_action,
@@ -18,6 +19,8 @@ from database.platform_repository import (
     save_project_config,
     save_workflow_from_nl,
 )
+from services.cloud_provisioner import provision_new_project
+from services.skill_updater import update_skills_from_patterns
 
 router = APIRouter(tags=["platform"])
 
@@ -66,13 +69,32 @@ async def get_onboarding():
 
 @router.post("/onboarding")
 async def post_onboarding(body: OnboardingBody):
-    return save_project_config({
+    config = save_project_config({
         "domain": body.domain,
         "projectType": body.projectType,
         "context": body.context,
         "clientName": body.clientName,
         "onboarded": True,
     })
+    provision_job = None
+    if body.projectType == "new":
+        provision_job = provision_new_project(cloud="aws")
+    return {"config": config, "provisionJob": provision_job}
+
+
+@router.post("/provision")
+async def trigger_provision(cloud: str = "aws"):
+    return provision_new_project(cloud=cloud)
+
+
+@router.get("/provision/jobs")
+async def get_provision_jobs():
+    return list_provisioning_jobs()
+
+
+@router.post("/skills/learn")
+async def trigger_skill_learning():
+    return update_skills_from_patterns()
 
 
 @router.get("/domains")

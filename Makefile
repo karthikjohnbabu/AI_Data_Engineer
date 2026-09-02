@@ -8,7 +8,7 @@ dev-backend:
 
 install:
 	cd frontend && npm install
-	pip install fastapi "uvicorn[standard]" pydantic pydantic-settings
+	pip install httpx cryptography fastapi "uvicorn[standard]" pydantic pydantic-settings boto3
 
 seed-demo:
 	python scripts/seed/demo_seed.py

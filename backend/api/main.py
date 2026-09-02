@@ -13,12 +13,16 @@ from api.middleware.auth import APIKeyMiddleware
 from api.routes import auth, dashboard, deployments, integrations, memory, notifications, platform, reports, runs, skills, tickets
 from config.settings import get_settings
 from database.db import init_db
+from security.crypto import credentials_encrypted_at_rest
+from services.scheduler import start_scheduler, stop_scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    start_scheduler()
     yield
+    stop_scheduler()
 
 
 settings = get_settings()
@@ -26,7 +30,7 @@ settings = get_settings()
 app = FastAPI(
     title="AI Data Engineer — Agent API",
     description="REST API for the AI Data Engineering Agent platform",
-    version="0.4.0",
+    version="0.5.0",
     lifespan=lifespan,
 )
 
@@ -55,9 +59,10 @@ app.include_router(notifications.router, prefix="/api")
 async def health_check():
     return {
         "status": "ok",
-        "version": "0.4.0",
+        "version": "0.5.0",
         "jiraMode": settings.jira_mode,
         "gitProvider": settings.git_provider,
         "llmProvider": settings.llm_provider,
         "authEnabled": settings.auth_enabled,
+        "credentialsEncrypted": credentials_encrypted_at_rest(),
     }
