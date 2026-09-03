@@ -1,0 +1,2 @@
+"""Runner — Newton module (stub)."""
+

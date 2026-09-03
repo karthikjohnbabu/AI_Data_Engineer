@@ -1,0 +1,17 @@
+name: incident_resolution
+description: Fast path for production incidents
+stages:
+  - triage
+  - investigate
+  - plan
+  - code
+  - test
+  - human_approval
+  - id: deploy_prod
+    type: deploy
+    environment: prod
+  - id: validate_prod
+    type: validate
+  - update_ticket
+  - update_memory
+  - notify

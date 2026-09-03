@@ -1,0 +1,23 @@
+{
+  "id": "retail",
+  "name": "Retail & E-commerce",
+  "description": "Omnichannel commerce, inventory, pricing, promotions, and customer 360",
+  "skills": [
+    "scd2",
+    "inventory-sync",
+    "clickstream",
+    "reconciliation",
+    "redshift",
+    "dbt"
+  ],
+  "rules": [
+    "Stock quantities must reconcile across warehouse, store, and online within SLA",
+    "Price and promo changes are effective-dated; never overwrite historical prices",
+    "Order/fulfillment events are append-only until terminal state",
+    "PII in customer profiles masked outside production analytics zones"
+  ],
+  "memories": [
+    "Black Friday / Singles Day traffic spikes require pre-warmed clusters",
+    "Returns reverse-ETL must not double-count revenue in gold marts"
+  ]
+}

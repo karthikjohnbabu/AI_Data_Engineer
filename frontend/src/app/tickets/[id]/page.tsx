@@ -11,6 +11,8 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/common/Button";
+import { ApprovalsChrome } from "@/components/common/ApprovalsChrome";
+import { RecommendationsBanner } from "@/components/common/RecommendationsBanner";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ExecutionTimeline } from "@/components/tickets/ExecutionTimeline";
 import { PhaseChecklist } from "@/components/tickets/PhaseChecklist";
@@ -92,6 +94,11 @@ export default function TicketDetailPage({
             <ConfidenceScore value={ticket.confidence} />
           </div>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <ApprovalsChrome />
+        <RecommendationsBanner />
       </div>
 
       <div className="mb-6 flex gap-1 border-b border-slate-700/50">

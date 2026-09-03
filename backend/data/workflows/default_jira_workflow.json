@@ -1,51 +1,96 @@
 {
-  "id": "default-jira-workflow",
-  "name": "Standard Jira Phased Workflow",
-  "description": "Phase 1–4 checklist as defined with Prasath Anna",
+  "id": "newton-auto-etl-workflow",
+  "name": "Newton · The AI Data Engineer Pipeline",
+  "description": "End-to-end lifecycle — Jira / Teams / Slack through prod validation and sector skill learning",
   "phases": [
     {
-      "id": "phase-1",
-      "name": "Phase 1 — Triage & Analysis",
+      "id": "phase-intake",
+      "name": "Intake",
       "tasks": [
-        "Jira ticket received and parsed",
-        "Severity and priority classified",
-        "Architecture and memory context loaded",
-        "Root cause analysis completed",
-        "Impact assessment documented"
+        "Ticket received from Jira",
+        "Teams / Slack notification relayed",
+        "Context and attachments parsed"
       ]
     },
     {
-      "id": "phase-2",
-      "name": "Phase 2 — Dev Testing & Validation",
+      "id": "phase-triage",
+      "name": "Triage",
       "tasks": [
-        "Fix generated and code reviewed",
-        "Dev environment testing completed",
-        "Jira test cases updated",
-        "Validation checks passed (row count, schema, DQ)",
-        "Merged to dev branch",
-        "PR prepared with README.md updates"
+        "Severity and type classified",
+        "Domain / sector baseline loaded",
+        "Priority and blast radius estimated"
       ]
     },
     {
-      "id": "phase-3",
-      "name": "Phase 3 — PR & Deployment",
+      "id": "phase-investigation",
+      "name": "Investigation",
+      "tasks": [
+        "Architecture memory searched",
+        "Past incidents and skills matched",
+        "Root cause identified"
+      ]
+    },
+    {
+      "id": "phase-planner",
+      "name": "Planner",
+      "tasks": [
+        "Fix plan generated",
+        "Impacted pipelines and tables listed",
+        "Test and validation strategy defined"
+      ]
+    },
+    {
+      "id": "phase-coding",
+      "name": "Coding",
+      "tasks": [
+        "Feature branch created",
+        "ETL / ELT code changes generated",
+        "Diffs prepared for review"
+      ]
+    },
+    {
+      "id": "phase-tests",
+      "name": "Tests",
+      "tasks": [
+        "Unit tests executed",
+        "Integration tests executed",
+        "Data quality checks executed"
+      ]
+    },
+    {
+      "id": "phase-dev-deploy",
+      "name": "Deploy to DEV",
+      "tasks": [
+        "Deployed to DEV",
+        "DEV validation (row counts, schema, reconciliation)",
+        "DEV results recorded"
+      ]
+    },
+    {
+      "id": "phase-pr",
+      "name": "Pull Request",
       "tasks": [
         "PR created and linked to Jira",
-        "Code review completed",
-        "Deployed to localhost / dev environment",
-        "UAT deployment approved",
-        "Integration tests passed in UAT"
+        "PR review completed",
+        "Human approval gate cleared"
       ]
     },
     {
-      "id": "phase-4",
-      "name": "Phase 4 — Closure & Post-Validation",
+      "id": "phase-prod",
+      "name": "Production",
       "tasks": [
-        "Prod deployment completed",
-        "Post-deployment data validation passed",
-        "Reconciliation confirmed 100%",
-        "Jira ticket transitioned to Done",
-        "Post-mortem / lessons learned recorded in memory"
+        "Merged to main",
+        "Deployed to PROD",
+        "PROD validation passed"
+      ]
+    },
+    {
+      "id": "phase-learn",
+      "name": "Learn & Close",
+      "tasks": [
+        "Jira ticket updated automatically",
+        "Organizational memory updated",
+        "New sector skill learned from patterns"
       ]
     }
   ]

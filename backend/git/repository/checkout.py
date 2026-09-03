@@ -1,0 +1,2 @@
+"""Checkout — Newton module (stub)."""
+

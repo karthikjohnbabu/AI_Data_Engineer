@@ -1,0 +1,2 @@
+"""Clone — Newton module (stub)."""
+

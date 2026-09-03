@@ -1,8 +1,11 @@
 """Application settings loaded from environment variables."""
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 class Settings(BaseSettings):
@@ -12,6 +15,12 @@ class Settings(BaseSettings):
     api_key: str = ""
     cors_origins: str = "http://localhost:3000"
     credentials_secret_key: str = ""
+
+    # Newton deployment mode (no Cursor runtime dependency)
+    newton_deployment_mode: str = "multi_tenant"  # multi_tenant | single_tenant
+    newton_tenant_id: str = ""  # required when single_tenant
+    newton_default_tenant_id: str = "newton"
+    tenant_data_dir: str = str(_REPO_ROOT / "tenant_data")
 
     # Integrations (mock | jira, mock | github | bitbucket)
     jira_mode: str = "mock"

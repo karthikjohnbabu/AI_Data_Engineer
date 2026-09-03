@@ -1,0 +1,2 @@
+"""Approvals — Newton module (stub)."""
+

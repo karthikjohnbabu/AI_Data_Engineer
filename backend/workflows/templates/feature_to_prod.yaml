@@ -1,0 +1,20 @@
+name: feature_to_prod
+description: Feature → PR → main → PROD (Company C style)
+stages:
+  - triage
+  - investigate
+  - plan
+  - code
+  - test
+  - create_pr
+  - review_pr
+  - human_approval
+  - merge
+  - id: deploy_prod
+    type: deploy
+    environment: prod
+  - id: validate_prod
+    type: validate
+  - update_ticket
+  - update_memory
+  - notify

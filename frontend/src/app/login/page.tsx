@@ -40,10 +40,10 @@ export default function LoginPage() {
       <div className="w-full max-w-md rounded-xl border border-slate-700/50 bg-slate-900 p-8">
         <div className="mb-6 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-600 text-lg font-bold text-white">
-            AI
+            N
           </div>
-          <h1 className="text-xl font-bold text-white">AI Data Engineer</h1>
-          <p className="mt-1 text-sm text-slate-400">Sign in to the agent platform</p>
+          <h1 className="text-xl font-bold text-white">Newton</h1>
+          <p className="mt-1 text-sm text-slate-400">The AI Data Engineer — sign in to continue</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">

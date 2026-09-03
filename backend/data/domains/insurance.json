@@ -1,0 +1,22 @@
+{
+  "id": "insurance",
+  "name": "Insurance",
+  "description": "Policy admin, underwriting, claims, actuarial and regulatory reporting",
+  "skills": [
+    "actuarial-extracts",
+    "scd2",
+    "reconciliation",
+    "data-quality",
+    "sql"
+  ],
+  "rules": [
+    "Policy effective/expiry dates drive SCD2; no silent history rewrites",
+    "Claims reserves and payments reconcile to finance ledger daily",
+    "Solvency / statutory extracts require dual control before prod release",
+    "Fraud model features exclude protected attributes unless legally approved"
+  ],
+  "memories": [
+    "Catastrophe event spikes create backlog; prioritize incremental claim status CDC",
+    "Bordereaux feeds from MGAs often arrive late \u2014 watermark + late-arriving data rules"
+  ]
+}

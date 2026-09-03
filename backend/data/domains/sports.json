@@ -1,0 +1,22 @@
+{
+  "id": "sports",
+  "name": "Sports & Live Events",
+  "description": "Ticketing, broadcast, fan engagement, betting feeds adjacency, and ops",
+  "skills": [
+    "streaming",
+    "ticketing",
+    "clickstream",
+    "data-quality",
+    "reconciliation"
+  ],
+  "rules": [
+    "Ticket inventory and access scans reconcile per event gate",
+    "Live stats latency SLAs published; late corrections flagged",
+    "Fan PII minimized in engagement lakes",
+    "Partner content rights geo-restricted before distribution metrics"
+  ],
+  "memories": [
+    "Match-day traffic is spiky \u2014 pre-scale stream and API layers",
+    "Secondary ticketing feeds need fraud/duplicate detection"
+  ]
+}

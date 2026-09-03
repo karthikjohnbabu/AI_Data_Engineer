@@ -1,0 +1,36 @@
+tenant_id: newton
+name: Newton Platform
+deployment_mode: multi_tenant
+git:
+  provider: mock
+  repository: newton/platform
+  branch_strategy:
+    feature_prefix: feature/
+    development_branch: dev
+    production_branch: main
+    deploy_from_feature: true
+    require_pr_for_prod: true
+    merge_target: main
+cloud:
+  provider: aws
+  region: eu-west-2
+  environments: [dev, uat, prod]
+  credentials_secret: newton/newton/aws
+workflow:
+  default_template: dev_to_prod
+skills:
+  include_standard: true
+  allow_overrides: true
+rules:
+  enforce_prod_destructive_guard: true
+memory:
+  backend: sqlite
+security:
+  require_human_approval_for:
+    - prod_deploy
+    - destructive_sql
+    - iam_change
+notifications:
+  channels: [in_app]
+  slack_enabled: false
+  teams_enabled: false

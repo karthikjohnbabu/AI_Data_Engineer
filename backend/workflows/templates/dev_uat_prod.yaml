@@ -1,0 +1,30 @@
+name: dev_uat_prod
+description: Feature → PR → develop → DEV → UAT → business approval → release → main → PROD
+stages:
+  - triage
+  - investigate
+  - plan
+  - code
+  - create_pr
+  - review_pr
+  - id: deploy_dev
+    type: deploy
+    environment: dev
+  - id: validate_dev
+    type: validate
+  - id: deploy_uat
+    type: deploy
+    environment: uat
+  - id: validate_uat
+    type: validate
+  - id: business_approval
+    type: approval
+  - merge
+  - id: deploy_prod
+    type: deploy
+    environment: prod
+  - id: validate_prod
+    type: validate
+  - update_ticket
+  - update_memory
+  - notify

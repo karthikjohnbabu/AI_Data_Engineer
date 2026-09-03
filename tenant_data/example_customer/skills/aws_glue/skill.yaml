@@ -1,0 +1,15 @@
+id: aws-glue-debugging
+name: AWS Glue Debugging (Example Customer override)
+version: 1.1.0
+triggers:
+  technologies:
+    - aws_glue
+capabilities:
+  - analyse_logs
+  - inspect_job
+  - identify_failure
+  - suggest_fix
+  - customer_specific_checklist
+risk: low
+handler:
+  module: handler.py

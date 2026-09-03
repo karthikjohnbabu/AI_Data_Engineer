@@ -1,0 +1,2 @@
+"""Guard — Newton module (stub)."""
+

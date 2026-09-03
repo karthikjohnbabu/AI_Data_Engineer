@@ -1,0 +1,2 @@
+"""Service — Newton module (stub)."""
+

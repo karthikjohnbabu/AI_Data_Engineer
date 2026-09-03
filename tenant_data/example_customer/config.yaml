@@ -1,0 +1,26 @@
+tenant_id: example_customer
+name: Example Customer
+deployment_mode: multi_tenant
+git:
+  provider: github
+  repository: example/data-platform
+  branch_strategy:
+    feature_prefix: feature/
+    development_branch: develop
+    production_branch: main
+    deploy_from_feature: false
+    require_pr_for_prod: true
+    merge_target: main
+cloud:
+  provider: aws
+  region: eu-west-2
+  environments: [dev, uat, prod]
+  credentials_secret: newton/example_customer/aws
+workflow:
+  default_template: feature_to_prod
+skills:
+  include_standard: true
+  allow_overrides: true
+notifications:
+  channels: [in_app, slack]
+  slack_enabled: true

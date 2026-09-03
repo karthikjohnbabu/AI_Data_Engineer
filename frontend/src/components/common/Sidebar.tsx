@@ -7,20 +7,26 @@ import {
   Brain,
   Cloud,
   GitBranch,
+  GitPullRequest,
   LayoutDashboard,
   Play,
   Plug,
   Rocket,
   Settings,
+  ShieldCheck,
   Ticket,
+  ScanSearch,
   Wrench,
 } from "lucide-react";
 import { cn } from "@/utils";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/triage", label: "Triage", icon: ScanSearch },
   { href: "/tickets", label: "Tickets", icon: Ticket },
   { href: "/runs", label: "Runs", icon: Play },
+  { href: "/pull-requests", label: "Pull Requests", icon: GitPullRequest },
+  { href: "/approvals", label: "Approvals", icon: ShieldCheck },
   { href: "/deployments", label: "Deployments", icon: Rocket },
   { href: "/tech-stack", label: "Tech Stack", icon: Cloud },
   { href: "/workflows", label: "Workflows", icon: GitBranch },
@@ -34,18 +40,18 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-16 flex-col items-center border-r border-slate-700/50 bg-slate-900 py-4 lg:w-56 lg:items-stretch lg:px-3">
-      <div className="mb-8 flex items-center gap-3 px-2 lg:px-1">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
-          AI
+    <aside className="flex h-screen w-16 flex-col items-center border-r border-slate-800 bg-[#0b0f17] py-4 lg:w-56 lg:items-stretch lg:px-3">
+      <Link href="/" className="mb-6 flex items-center gap-3 px-2 lg:px-1">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-500 text-sm font-bold text-slate-950 shadow-[0_0_24px_rgba(14,165,233,0.35)]">
+          N
         </div>
         <div className="hidden lg:block">
-          <p className="text-sm font-semibold text-white">AI Data Engineer</p>
-          <p className="text-xs text-slate-500">Agent Platform</p>
+          <p className="text-sm font-semibold text-white">Newton</p>
+          <p className="text-[11px] text-slate-500">The AI Data Engineer</p>
         </div>
-      </div>
+      </Link>
 
-      <nav className="flex flex-1 flex-col gap-1">
+      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive =
             href === "/"
@@ -57,13 +63,13 @@ export function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-blue-600/15 text-blue-400"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                  ? "bg-sky-500/15 text-sky-300"
+                  : "text-slate-400 hover:bg-slate-800/80 hover:text-slate-200"
               )}
             >
-              <Icon className="h-5 w-5 shrink-0" />
+              <Icon className="h-4 w-4 shrink-0" />
               <span className="hidden lg:inline">{label}</span>
             </Link>
           );
@@ -72,7 +78,7 @@ export function Sidebar() {
 
       <Link
         href="/settings"
-        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200"
+        className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200"
       >
         <Settings className="h-5 w-5 shrink-0" />
         <span className="hidden lg:inline">Settings</span>

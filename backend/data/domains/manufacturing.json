@@ -1,0 +1,22 @@
+{
+  "id": "manufacturing",
+  "name": "Manufacturing",
+  "description": "MES, IoT sensors, supply BOM, quality, and plant operations data",
+  "skills": [
+    "iot-ingest",
+    "time-series",
+    "quality-control",
+    "pyspark",
+    "reconciliation"
+  ],
+  "rules": [
+    "Sensor data retains plant timezone; UTC conversion is explicit and logged",
+    "Scrap/rework quantities reconcile to inventory adjustments",
+    "Recipe/BOM changes are versioned; production lots bind to exact BOM revision",
+    "Quality holds block downstream gold publish until cleared"
+  ],
+  "memories": [
+    "Shift handover dashboards depend on 15-minute OEE aggregates",
+    "PLC tag renames cause silent schema drift \u2014 maintain tag dictionary"
+  ]
+}

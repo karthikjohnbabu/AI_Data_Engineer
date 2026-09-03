@@ -12,7 +12,7 @@ export default function WorkflowsPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [phasesText, setPhasesText] = useState(
-    `Phase 1: Triage and analysis\n- Parse Jira ticket\n- Classify severity\n- Root cause analysis\n\nPhase 2: Dev testing\n- Generate fix\n- Run tests\n- Merge to dev\n- Prepare PR and README\n\nPhase 3: PR and deployment\n- Create PR\n- Deploy to dev/UAT\n\nPhase 4: Closure\n- Prod validation\n- Close Jira ticket\n- Update memory`
+    `Intake: Jira / Teams / Slack\n- Ticket received\n- Notifications relayed\n\nTriage\n- Classify severity\n- Load sector baseline\n\nInvestigation\n- Root cause\n- Memory search\n\nPlanner\n- Plan fix and tests\n\nCoding\n- Feature branch\n- Generate ETL/ELT changes\n\nTests\n- Unit / integration / DQ\n\nDeploy to DEV\n- DEV validation\n\nPull Request\n- Create PR\n- Human approval\n\nProduction\n- Merge to main\n- Deploy PROD\n- PROD validation\n\nLearn & Close\n- Update Jira\n- Update memory\n- Learn sector skill`
   );
   const [saving, setSaving] = useState(false);
 
@@ -37,7 +37,7 @@ export default function WorkflowsPage() {
     <div>
       <PageHeader
         title="Workflows"
-        description="Define Jira phased checklists using natural language"
+        description="Newton · The AI Data Engineer — define or customize the full lifecycle in natural language"
         actions={
           <Button onClick={() => setShowCreate(true)}>Define Workflow</Button>
         }

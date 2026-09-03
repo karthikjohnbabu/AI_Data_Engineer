@@ -1,0 +1,7 @@
+destructive_operations:
+  - drop
+  - truncate
+  - delete
+  - iam_change
+  - kms_change
+always_require_human_approval: true

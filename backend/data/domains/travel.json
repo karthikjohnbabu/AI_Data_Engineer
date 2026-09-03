@@ -1,0 +1,23 @@
+{
+  "id": "travel",
+  "name": "Travel & Tourism",
+  "description": "Airlines, OTAs, hotels, booking engines, loyalty, and itinerary data at global scale",
+  "skills": [
+    "booking-reconciliation",
+    "cdc",
+    "pyspark",
+    "kafka",
+    "data-quality",
+    "gdpr"
+  ],
+  "rules": [
+    "PNR and passenger data treated as regulated PII with regional residency controls",
+    "Inventory and fare changes must be near-real-time; stale caches require alerting",
+    "Loyalty points and currency conversions use immutable ledger-style reconciliation",
+    "Cancellation/refund pipelines must be idempotent across GDS and payment systems"
+  ],
+  "memories": [
+    "Peak booking windows (holidays, events) need auto-scale on Glue/Spark workers",
+    "Amadeus/Sabre feeds often drift on ancillary product schemas \u2014 versioned contracts required"
+  ]
+}

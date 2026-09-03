@@ -1,0 +1,22 @@
+{
+  "id": "telecommunications",
+  "name": "Telecommunications",
+  "description": "CDR/usage, network telemetry, billing, churn and subscriber analytics",
+  "skills": [
+    "streaming",
+    "kafka",
+    "pyspark",
+    "cdr-aggregation",
+    "data-quality"
+  ],
+  "rules": [
+    "Usage/CDR pipelines must be exactly-once or reconcile duplicates before billing",
+    "Subscriber PII and location data subject to telecom retention laws",
+    "Network KPIs published only after late-window CDR catch-up",
+    "Billing mediation rejects negative or impossible usage without ops review"
+  ],
+  "memories": [
+    "Roaming settlement files are T+1 and multi-currency \u2014 FX tables versioned by day",
+    "5G telemetry volumes require partitioned lakehouse tables by cell/region"
+  ]
+}

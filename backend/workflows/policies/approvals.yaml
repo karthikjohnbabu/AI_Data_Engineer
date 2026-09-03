@@ -1,0 +1,9 @@
+LOW:
+  auto_execute: true
+MEDIUM:
+  require_pr_review: true
+HIGH:
+  require_human_approval: true
+CRITICAL:
+  require_human_approval: true
+  require_secondary_approval: true

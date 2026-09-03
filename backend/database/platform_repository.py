@@ -286,12 +286,24 @@ def generate_daily_recommendations() -> list[dict]:
         ))
 
     config = get_project_config()
-    if config.get("domain") == "betting":
+    domain = get_domain(config.get("domain", ""))
+    if domain:
+        rule = (domain.get("rules") or [None])[0]
+        memory = (domain.get("memories") or [None])[0]
+        skill = (domain.get("skills") or ["etl"])[0]
         new_recs.append(add_recommendation(
-            "BBees incremental load pattern",
-            "For source row updates (e.g. surname changes), use watermark-based delta loads — not full extracts. Data freeze is active post-migration.",
-            "workflow", "medium",
+            f"Learn {domain.get('name', 'sector')} skill: {skill}",
+            rule or memory or f"Apply {domain.get('name')} baseline rules on the next Newton run.",
+            "skills",
+            "medium",
         ))
+        if memory:
+            new_recs.append(add_recommendation(
+                f"{domain.get('name')} memory hint",
+                memory,
+                "workflow",
+                "low",
+            ))
 
     return new_recs
 
@@ -441,8 +453,22 @@ def _aws_environments(aws: dict) -> list[dict]:
             {"name": "Prod", "status": "not_configured", "region": "—"},
         ]
     region = aws.get("region", "eu-west-2")
+    selected = {
+        e.strip().lower()
+        for e in str(aws.get("environments", "dev,uat,prod")).split(",")
+        if e.strip()
+    }
+    mapping = [
+        ("dev", "Dev", aws.get("devVpc", "vpc-dev-data")),
+        ("uat", "UAT", aws.get("uatVpc", "vpc-uat-data")),
+        ("prod", "Prod", aws.get("prodVpc", "vpc-prod-data")),
+    ]
     return [
-        {"name": "Dev", "status": "connected", "region": region, "vpc": aws.get("devVpc", "vpc-dev-data")},
-        {"name": "UAT", "status": "connected", "region": region, "vpc": aws.get("uatVpc", "vpc-uat-data")},
-        {"name": "Prod", "status": "connected", "region": region, "vpc": aws.get("prodVpc", "vpc-prod-data")},
+        {
+            "name": label,
+            "status": "connected" if key in selected else "not_configured",
+            "region": region if key in selected else "—",
+            "vpc": vpc if key in selected else None,
+        }
+        for key, label, vpc in mapping
     ]

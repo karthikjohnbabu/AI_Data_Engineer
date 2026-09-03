@@ -1,7 +1,7 @@
 [project]
 name = "ai-data-engineer"
 version = "0.1.0"
-description = "AI Data Engineering Agent platform"
+description = "Newton · The AI Data Engineer"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.0",
@@ -10,6 +10,7 @@ dependencies = [
     "pydantic-settings>=2.0",
     "httpx>=0.27.0",
     "cryptography>=43.0.0",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]

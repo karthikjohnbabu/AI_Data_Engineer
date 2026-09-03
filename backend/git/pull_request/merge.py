@@ -1,0 +1,2 @@
+"""Merge — Newton module (stub)."""
+

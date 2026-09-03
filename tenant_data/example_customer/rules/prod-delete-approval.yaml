@@ -1,0 +1,13 @@
+id: prod-delete-approval
+name: Production destructive operation
+scope:
+  environment: prod
+conditions:
+  operations:
+    - drop
+    - truncate
+    - delete
+action:
+  require_human_approval: true
+  block: false
+  message: Example customer requires approval for destructive prod ops

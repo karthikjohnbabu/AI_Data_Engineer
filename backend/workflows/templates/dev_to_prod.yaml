@@ -1,0 +1,29 @@
+name: dev_to_prod
+description: Feature → test → DEV → validate → PR → approval → merge → PROD
+stages:
+  - triage
+  - investigate
+  - plan
+  - code
+  - test
+  - id: deploy_dev
+    type: deploy
+    enabled: true
+    environment: dev
+  - id: validate_dev
+    type: validate
+    enabled: true
+  - create_pr
+  - review_pr
+  - human_approval
+  - merge
+  - id: deploy_prod
+    type: deploy
+    enabled: true
+    environment: prod
+  - id: validate_prod
+    type: validate
+    enabled: true
+  - update_ticket
+  - update_memory
+  - notify

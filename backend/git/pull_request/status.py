@@ -1,0 +1,2 @@
+"""Status — Newton module (stub)."""
+

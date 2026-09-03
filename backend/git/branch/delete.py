@@ -1,0 +1,2 @@
+"""Delete — Newton module (stub)."""
+

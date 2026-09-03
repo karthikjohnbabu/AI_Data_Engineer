@@ -1,0 +1,2 @@
+"""Generate — Newton module (stub)."""
+

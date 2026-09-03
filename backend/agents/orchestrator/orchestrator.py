@@ -1,12 +1,15 @@
-"""Agent orchestrator — full triage → investigation → coding → testing pipeline."""
+"""Agent orchestrator — Newton Jira → production pipeline with human gates."""
 
-from agents.coding.code_generator import generate_fix
-from agents.investigation.root_cause import analyze_root_cause
+from agents.coding.agent import run_coding
+from agents.deployment.dev import deploy_dev
+from agents.investigation.agent import run_investigation
+from agents.planner.agent import run_planner
+from agents.pr_review.agent import run_pr_review
 from agents.testing.agent import run_tests
-from agents.triage.classifier import classify_ticket
+from agents.triage.agent import run_triage
 from agents.validation.agent import run_validation
-from models.agent_run import AgentRunResult, RunStatus, TimelineStep, utc_now
 from database.platform_repository import create_pending_action
+from models.agent_run import AgentRunResult, RunStatus, TimelineStep, utc_now
 from services.run_store import save_deployment, save_run, save_ticket_override
 
 
@@ -21,39 +24,66 @@ def _step(step_id: str, label: str, status: str, description: str) -> TimelineSt
 
 
 def run_ticket_pipeline(ticket_id: str, summary: str) -> AgentRunResult:
-    """Execute the full agent pipeline for a ticket."""
+    """Execute the full Newton agent pipeline for a ticket."""
     timeline: list[TimelineStep] = []
 
-    timeline.append(_step("1", "Jira analysed", "completed", "Ticket parsed and classified"))
-    timeline.append(_step("2", "Architecture loaded", "completed", "Platform architecture retrieved from memory"))
-    timeline.append(_step("3", "Repository identified", "completed", "Target repository and branch identified"))
+    timeline.append(_step("1", "Jira / Teams / Slack intake", "completed", "Ticket received and notifications relayed"))
 
-    classification_id, classification_label, severity = classify_ticket(summary)
-    timeline.append(_step("4", "Memory searched", "completed", "Similar incidents searched in agent memory"))
+    triage = run_triage(summary)
+    classification_id = triage["classificationId"]
+    classification_label = triage["classification"]
+    severity = triage["severity"]
+    timeline.append(_step("2", "Triage", "completed", f"{classification_label} · {severity} · risk {triage['risk']['level']}"))
 
-    root_cause, impacted_files, confidence = analyze_root_cause(classification_id, summary)
-    timeline.append(_step("5", "Root cause identified", "completed", f"Classified as: {classification_label}"))
+    investigation = run_investigation(classification_id, summary)
+    root_cause = investigation["rootCause"]
+    impacted_files = investigation["impactedFiles"]
+    confidence = investigation["confidence"]
+    timeline.append(_step("3", "Investigation", "completed", root_cause[:140]))
 
-    code_changes = generate_fix(classification_id, impacted_files)
-    timeline.append(_step("6", "Fix generated", "completed" if code_changes else "pending",
-                          f"{len(code_changes)} file(s) modified" if code_changes else "Awaiting more context"))
+    plan = run_planner(ticket_id, classification_id, summary, impacted_files)
+    timeline.append(_step("4", "Planner", "completed", f"Blast radius {plan['impact']['blastRadius']} · {len(plan['plan']['steps'])} steps"))
+
+    coding = run_coding(classification_id, impacted_files)
+    code_changes = coding["codeChanges"]
+    timeline.append(_step("5", "Coding", "completed" if code_changes else "pending",
+                          f"{len(code_changes)} file(s) changed" if code_changes else "Awaiting more context"))
+    timeline.append(_step("6", "Feature branch", "completed" if code_changes else "pending",
+                          f"feature/{ticket_id.lower()}-fix" if code_changes else "Branch not created"))
 
     test_results = run_tests(classification_id, confidence) if code_changes else []
-    all_passed = all(t["status"] == "passed" for t in test_results)
-    timeline.append(_step("7", "Tests executed", "completed" if all_passed else "failed",
-                          f"{sum(1 for t in test_results if t['status'] == 'passed')}/{len(test_results)} tests passed"))
+    all_passed = bool(test_results) and all(t["status"] == "passed" for t in test_results)
+    timeline.append(_step("7", "Tests", "completed" if all_passed else "failed",
+                          f"{sum(1 for t in test_results if t['status'] == 'passed')}/{len(test_results)} passed"))
 
     data_validation = run_validation(classification_id, confidence) if code_changes else []
-    validation_passed = all(v["status"] == "passed" for v in data_validation)
+    validation_passed = bool(data_validation) and all(v["status"] == "passed" for v in data_validation)
 
-    pr_status = "completed" if all_passed and validation_passed and confidence >= 70 else "pending"
-    timeline.append(_step("8", "PR created", pr_status,
-                          "PR ready for review" if pr_status == "completed" else "Blocked by test/validation failures"))
+    if all_passed:
+        deploy_dev(ticket_id)
+        timeline.append(_step("8", "Deploy to DEV", "completed", "Auto-deployed to DEV"))
+        timeline.append(_step("9", "DEV validation", "completed" if validation_passed else "failed",
+                              "Row count / schema / reconciliation / DQ"))
+    else:
+        timeline.append(_step("8", "Deploy to DEV", "pending", "Blocked by failing tests"))
+        timeline.append(_step("9", "DEV validation", "pending", "Awaiting DEV deploy"))
 
-    timeline.append(_step("9", "Deployment validated", "pending", "Awaiting human approval for UAT"))
+    pr_ready = all_passed and validation_passed and confidence >= 70
+    timeline.append(_step("10", "Create PR", "completed" if pr_ready else "pending",
+                          "PR ready for review" if pr_ready else "Blocked by test/validation failures"))
 
-    agent_status = "Awaiting Review" if pr_status == "completed" else "Testing" if test_results else "Investigating"
-    ticket_status = "In Review" if pr_status == "completed" else "In Progress"
+    review = run_pr_review(code_changes, severity) if pr_ready else None
+    timeline.append(_step("11", "PR review", "completed" if review else "pending",
+                          "Code / security / risk review" if review else "Awaiting PR"))
+    timeline.append(_step("12", "Human approval", "pending",
+                          "Engineers approve critical actions before merge / UAT / PROD"))
+    timeline.append(_step("13", "Merge to main", "pending", "Awaiting human approval"))
+    timeline.append(_step("14", "Deploy PROD", "pending", "Controlled deployment gate"))
+    timeline.append(_step("15", "PROD validation", "pending", "Post-deploy data validation"))
+    timeline.append(_step("16", "Update Jira / Memory", "pending", "Close ticket and learn sector skill"))
+
+    agent_status = "Awaiting Review" if pr_ready else "Testing" if test_results else "Investigating"
+    ticket_status = "In Review" if pr_ready else "In Progress"
 
     deployments = [
         {"stage": "Dev", "status": "completed" if all_passed else "pending", "approvedBy": "Auto-deploy" if all_passed else None, "timestamp": utc_now() if all_passed else None},
@@ -75,9 +105,10 @@ def run_ticket_pipeline(ticket_id: str, summary: str) -> AgentRunResult:
         test_results=test_results,
         data_validation=data_validation,
         summary=(
-            f"Agent classified ticket as {classification_label} ({severity} severity). "
-            f"Generated fix across {len(code_changes)} file(s) with {confidence}% confidence. "
-            f"Tests: {sum(1 for t in test_results if t['status'] == 'passed')}/{len(test_results)} passed."
+            f"Newton classified as {classification_label} ({severity}). "
+            f"Planned and generated fix across {len(code_changes)} file(s) at {confidence}% confidence. "
+            f"Tests: {sum(1 for t in test_results if t['status'] == 'passed')}/{len(test_results)} passed. "
+            f"Awaiting engineer approval for controlled promotion."
         ),
         completed_at=utc_now(),
     )
@@ -95,13 +126,15 @@ def run_ticket_pipeline(ticket_id: str, summary: str) -> AgentRunResult:
         "timeline": [step.model_dump() for step in timeline],
         "summary": result.summary,
         "status": ticket_status,
-        "pr": f"#{hash(ticket_id) % 900 + 100}" if pr_status == "completed" else None,
+        "pr": f"#{hash(ticket_id) % 900 + 100}" if pr_ready else None,
         "impact": {
             "level": severity,
             "filesAffected": len(impacted_files),
-            "tablesAffected": 1 if impacted_files else 0,
-            "blastRadius": "Low" if confidence >= 80 else "Medium",
+            "tablesAffected": plan["impact"]["tablesAffected"],
+            "blastRadius": plan["impact"]["blastRadius"],
         },
+        "plan": plan["plan"],
+        "prReview": review,
     })
 
     if all_passed:
@@ -118,7 +151,10 @@ def run_ticket_pipeline(ticket_id: str, summary: str) -> AgentRunResult:
     create_pending_action(
         source="agent",
         action="review_fix",
-        message=f"Agent completed analysis for {ticket_id}. Review fix and approve deployment to UAT.",
+        message=(
+            f"Newton completed analysis for {ticket_id}. "
+            "Review the fix and approve controlled deployment (UAT → PROD)."
+        ),
         ticket_id=ticket_id,
     )
 

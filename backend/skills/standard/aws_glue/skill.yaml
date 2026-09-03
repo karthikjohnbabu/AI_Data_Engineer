@@ -1,0 +1,14 @@
+id: aws-glue-debugging
+name: AWS Glue Debugging
+version: 1.0.0
+triggers:
+  technologies:
+    - aws_glue
+capabilities:
+  - analyse_logs
+  - inspect_job
+  - identify_failure
+  - suggest_fix
+risk: low
+handler:
+  module: handler.py

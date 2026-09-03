@@ -1,0 +1,22 @@
+{
+  "id": "real_estate",
+  "name": "Real Estate & PropTech",
+  "description": "Listings, transactions, valuations, IoT buildings, and portfolio analytics",
+  "skills": [
+    "geospatial",
+    "scd2",
+    "data-quality",
+    "sql",
+    "reconciliation"
+  ],
+  "rules": [
+    "Listing status history retained; sold/rented never overwrite prior states",
+    "Valuation models versioned; comparable sets reproducible",
+    "Property identifiers canonicalized across MLS/portals",
+    "Tenant PII separated from building telemetry analytics"
+  ],
+  "memories": [
+    "MLS feed schema varies by region \u2014 maintain adapter per board",
+    "Transaction close dates often lag listing status \u2014 use source-of-truth hierarchy"
+  ]
+}

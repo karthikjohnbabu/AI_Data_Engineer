@@ -1,0 +1,2 @@
+"""Analyse — Newton module (stub)."""
+

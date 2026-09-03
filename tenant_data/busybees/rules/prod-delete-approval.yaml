@@ -1,0 +1,12 @@
+id: prod-delete-approval
+name: Production destructive operation
+scope:
+  environment: prod
+conditions:
+  operations:
+    - drop
+    - truncate
+    - delete
+action:
+  require_human_approval: true
+  message: BusyBees prod destructive ops require human approval

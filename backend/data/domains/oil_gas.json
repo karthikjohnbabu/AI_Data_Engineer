@@ -1,0 +1,22 @@
+{
+  "id": "oil_gas",
+  "name": "Oil & Gas",
+  "description": "Upstream/midstream/downstream ops, production allocation, and HSE data",
+  "skills": [
+    "time-series",
+    "scada",
+    "allocation",
+    "reconciliation",
+    "pyspark"
+  ],
+  "rules": [
+    "Production allocation must balance to measured volumes within tolerance",
+    "HSE incidents are immutable after submission",
+    "Well/test data versioned; reworks create new versions not overwrites",
+    "Trading and ops data segregated by access policy"
+  ],
+  "memories": [
+    "Monthly allocation close is a hard gate for finance handoff",
+    "SCADA tag dictionaries differ by asset \u2014 normalize early"
+  ]
+}

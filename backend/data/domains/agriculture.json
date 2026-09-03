@@ -1,0 +1,22 @@
+{
+  "id": "agriculture",
+  "name": "Agriculture & Food",
+  "description": "Farm ops, yield, cold chain, food safety, and commodity supply data",
+  "skills": [
+    "iot-ingest",
+    "geospatial",
+    "time-series",
+    "traceability",
+    "data-quality"
+  ],
+  "rules": [
+    "Lot/batch traceability required from farm to retail for recall readiness",
+    "Cold-chain temperature breaches create immutable alert events",
+    "Commodity prices time-stamped to market close; no backfill without audit",
+    "Agrochemical usage records retained per regional regulation"
+  ],
+  "memories": [
+    "Harvest seasons drive sensor ingest spikes \u2014 capacity plan ahead",
+    "GS1 barcodes and lot codes must normalize across suppliers"
+  ]
+}

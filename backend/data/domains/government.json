@@ -1,0 +1,22 @@
+{
+  "id": "government",
+  "name": "Government & Public Sector",
+  "description": "Citizen services, benefits, tax, open data, and regulated reporting",
+  "skills": [
+    "audit-trail",
+    "data-quality",
+    "anonymization",
+    "sql",
+    "reconciliation"
+  ],
+  "rules": [
+    "Citizen data minimization and purpose limitation enforced per dataset",
+    "Open data releases must pass automated re-identification risk checks",
+    "Statutory reports freeze at filing cut-off; late corrections are amendments",
+    "Access to sensitive systems requires dual approval for prod deploys"
+  ],
+  "memories": [
+    "Fiscal year vs calendar year calendars differ by agency \u2014 parameterize",
+    "Legacy mainframe extracts often EBCDIC/fixed-width \u2014 validate record lengths"
+  ]
+}

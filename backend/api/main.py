@@ -10,7 +10,23 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.middleware.auth import APIKeyMiddleware
-from api.routes import auth, dashboard, deployments, integrations, memory, notifications, platform, reports, runs, skills, tickets
+from api.routes import (
+    approvals,
+    auth,
+    dashboard,
+    deployments,
+    integrations,
+    memory,
+    notifications,
+    platform,
+    pull_requests,
+    reports,
+    runs,
+    skills,
+    tenants,
+    tickets,
+    workflows,
+)
 from config.settings import get_settings
 from database.db import init_db
 from security.crypto import credentials_encrypted_at_rest
@@ -28,9 +44,9 @@ async def lifespan(app: FastAPI):
 settings = get_settings()
 
 app = FastAPI(
-    title="AI Data Engineer — Agent API",
-    description="REST API for the AI Data Engineering Agent platform",
-    version="0.5.0",
+    title="Newton · The AI Data Engineer API",
+    description="REST API for Newton · The AI Data Engineer: Jira / Teams / Slack through prod validation and sector skill learning",
+    version="0.7.0",
     lifespan=lifespan,
 )
 
@@ -51,18 +67,25 @@ app.include_router(deployments.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(integrations.router, prefix="/api")
 app.include_router(skills.router, prefix="/api")
+app.include_router(memory.router, prefix="/api")
 app.include_router(platform.router, prefix="/api")
 app.include_router(notifications.router, prefix="/api")
+app.include_router(approvals.router, prefix="/api")
+app.include_router(pull_requests.router, prefix="/api")
+app.include_router(workflows.router, prefix="/api")
+app.include_router(tenants.router, prefix="/api")
 
 
 @app.get("/api/health")
 async def health_check():
     return {
         "status": "ok",
-        "version": "0.5.0",
+        "version": "0.7.0",
         "jiraMode": settings.jira_mode,
         "gitProvider": settings.git_provider,
         "llmProvider": settings.llm_provider,
         "authEnabled": settings.auth_enabled,
         "credentialsEncrypted": credentials_encrypted_at_rest(),
+        "deploymentMode": settings.newton_deployment_mode,
+        "defaultTenantId": settings.newton_default_tenant_id,
     }

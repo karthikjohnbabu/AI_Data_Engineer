@@ -1,0 +1,2 @@
+"""Comments — Newton module (stub)."""
+

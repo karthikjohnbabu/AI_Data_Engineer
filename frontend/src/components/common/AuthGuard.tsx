@@ -23,7 +23,16 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           router.replace("/login");
           return;
         }
-        if (pathname !== "/onboarding" && pathname !== "/login") {
+        if (pathname === "/onboarding") {
+          const onboarding = await getOnboarding();
+          if (onboarding.onboarded) {
+            router.replace("/");
+            return;
+          }
+          setReady(true);
+          return;
+        }
+        if (pathname !== "/login") {
           const onboarding = await getOnboarding();
           if (!onboarding.onboarded) {
             router.replace("/onboarding");

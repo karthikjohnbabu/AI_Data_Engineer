@@ -1,0 +1,22 @@
+{
+  "id": "banking",
+  "name": "Banking",
+  "description": "Core banking, payments, cards, KYC/AML, and regulatory reporting",
+  "skills": [
+    "payments",
+    "reconciliation",
+    "aml",
+    "scd2",
+    "data-quality"
+  ],
+  "rules": [
+    "Ledger entries are append-only; corrections are reversing entries",
+    "AML/KYC datasets access is tightly controlled and logged",
+    "Payment settlement must balance debit/credit before gold publish",
+    "Regulatory reports (BASEL, local CB) freeze at cut-off with dual control"
+  ],
+  "memories": [
+    "Card authorization vs clearing timing differences need suspense accounts",
+    "ISO 20022 migrations cause temporary dual-format ingest"
+  ]
+}

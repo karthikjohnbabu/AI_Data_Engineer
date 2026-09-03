@@ -1,0 +1,22 @@
+{
+  "id": "hospitality",
+  "name": "Hospitality",
+  "description": "Hotels, restaurants, F&B POS, guest experience, and property management",
+  "skills": [
+    "cdc",
+    "pos-ingest",
+    "scd2",
+    "reconciliation",
+    "data-quality"
+  ],
+  "rules": [
+    "Guest profiles and payment tokens never land in analytics raw form",
+    "Room inventory and rate plans effective-dated across PMS and CRS",
+    "POS and PMS folio charges must reconcile nightly",
+    "Multi-property chains use property_id on every fact table"
+  ],
+  "memories": [
+    "Event/group blocks create inventory oversell risk \u2014 monitor pickup curves",
+    "Franchise vs managed properties may have different PMS schemas"
+  ]
+}

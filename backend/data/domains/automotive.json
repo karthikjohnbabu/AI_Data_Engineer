@@ -1,0 +1,22 @@
+{
+  "id": "automotive",
+  "name": "Automotive",
+  "description": "Connected vehicles, telematics, manufacturing, dealers, and aftersales",
+  "skills": [
+    "iot-ingest",
+    "streaming",
+    "time-series",
+    "pyspark",
+    "data-quality"
+  ],
+  "rules": [
+    "VIN is a controlled identifier; restrict joins outside approved domains",
+    "Telematics late events handled with event-time watermarks",
+    "Warranty claims reconcile to parts and labor cost ledgers",
+    "OTA update telemetry must not mix test-fleet with production without flag"
+  ],
+  "memories": [
+    "Dealer DMS feeds are batch and messy \u2014 quarantine before silver",
+    "EV battery telemetry volumes dominate storage; downsample for gold KPIs"
+  ]
+}

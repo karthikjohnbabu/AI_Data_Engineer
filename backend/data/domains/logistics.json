@@ -1,0 +1,22 @@
+{
+  "id": "logistics",
+  "name": "Logistics & Supply Chain",
+  "description": "Warehousing, freight, last-mile, tracking, and inventory orchestration",
+  "skills": [
+    "event-sourcing",
+    "geospatial",
+    "cdc",
+    "reconciliation",
+    "pyspark"
+  ],
+  "rules": [
+    "Shipment status events are append-only with canonical state machine",
+    "Inventory transfers dual-post origin and destination; no one-sided moves",
+    "Carrier EDI/API schema versions tracked; unknown codes quarantine",
+    "ETA updates never erase historical ETA trail used for SLA analytics"
+  ],
+  "memories": [
+    "Peak season ASN volumes need partitioned S3 landing by carrier/day",
+    "Cross-border customs delays require separate milestone dimension"
+  ]
+}

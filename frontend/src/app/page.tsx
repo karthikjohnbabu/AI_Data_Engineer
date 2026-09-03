@@ -1,6 +1,8 @@
 import { MetricCard } from "@/components/common/MetricCard";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ActivityChart } from "@/components/dashboard/ActivityChart";
+import { PitchBanner } from "@/components/dashboard/PitchBanner";
+import { PipelineStrip } from "@/components/dashboard/PipelineStrip";
 import { ResolutionChart } from "@/components/dashboard/ResolutionChart";
 import {
   getActivityData,
@@ -20,8 +22,20 @@ export default async function DashboardPage() {
     <div>
       <PageHeader
         title="Dashboard"
-        description="AI agent activity and performance overview"
+        description="Newton · The AI Data Engineer — Jira to production with human approval gates"
       />
+
+      <PitchBanner />
+
+      <section className="mb-8 rounded-xl border border-slate-700/50 bg-slate-900/40 p-5">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-white">Controlled deployment pipeline</h2>
+          <span className="text-[11px] uppercase tracking-wide text-slate-500">
+            DEV validated · PR · human gate · PROD
+          </span>
+        </div>
+        <PipelineStrip />
+      </section>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <MetricCard
@@ -63,16 +77,12 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-5 lg:col-span-2">
-          <h2 className="mb-4 text-lg font-semibold text-white">
-            Activity Over Time
-          </h2>
+        <div className="rounded-xl border border-slate-700/50 bg-slate-900/50 p-5 lg:col-span-2">
+          <h2 className="mb-4 text-lg font-semibold text-white">Activity Over Time</h2>
           <ActivityChart data={activity} />
         </div>
-        <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-5">
-          <h2 className="mb-4 text-lg font-semibold text-white">
-            Resolution Breakdown
-          </h2>
+        <div className="rounded-xl border border-slate-700/50 bg-slate-900/50 p-5">
+          <h2 className="mb-4 text-lg font-semibold text-white">Resolution Breakdown</h2>
           <ResolutionChart data={resolution} />
         </div>
       </div>

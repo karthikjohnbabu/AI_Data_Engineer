@@ -1,0 +1,5 @@
+environments:
+  - dev
+  - uat
+  - prod
+prod_requires_approval: true

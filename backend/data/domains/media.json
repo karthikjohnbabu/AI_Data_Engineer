@@ -1,0 +1,22 @@
+{
+  "id": "media",
+  "name": "Media & Entertainment",
+  "description": "Streaming platforms, content catalogs, ads, rights, and audience measurement",
+  "skills": [
+    "clickstream",
+    "content-metadata",
+    "ad-attribution",
+    "kafka",
+    "data-quality"
+  ],
+  "rules": [
+    "Viewership metrics use watermarked late-event windows before finalize",
+    "Content rights windows enforce geo/territory filters before publish",
+    "Ad impressions and clicks reconcile to billing within agreed variance",
+    "User identifiers hashed; raw device IDs stay in restricted bronze"
+  ],
+  "memories": [
+    "Title metadata often multi-valued (genres, cast) \u2014 explode carefully for gold",
+    "Live sports peaks need autoscaling stream consumers"
+  ]
+}

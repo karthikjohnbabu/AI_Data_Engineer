@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Data Engineer — Agent Platform",
+  title: "Newton · The AI Data Engineer",
   description:
-    "Internal AI Data Engineering Agent dashboard for automated Jira ticket resolution",
+    "Newton · The AI Data Engineer — automates ETL/ELT from Jira, Teams, and Slack through triage, coding, DEV/PROD validation, and sector skill learning",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -1,0 +1,22 @@
+{
+  "id": "nonprofit",
+  "name": "Nonprofit & NGO",
+  "description": "Donations, grants, impact measurement, and beneficiary program data",
+  "skills": [
+    "crm-sync",
+    "fundraising",
+    "data-quality",
+    "sql",
+    "anonymization"
+  ],
+  "rules": [
+    "Donor and beneficiary PII minimized; impact reports use aggregates",
+    "Grant spend must reconcile to restricted fund ledgers",
+    "Campaign attribution windows documented and versioned",
+    "Cross-border transfers comply with sanctions screening exports"
+  ],
+  "memories": [
+    "Year-end giving spikes overwhelm CRM APIs \u2014 prefer bulk/CDC",
+    "Multi-currency donations need FX as-of donation timestamp"
+  ]
+}

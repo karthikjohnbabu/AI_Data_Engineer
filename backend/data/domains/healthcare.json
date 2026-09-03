@@ -1,0 +1,22 @@
+{
+  "id": "healthcare",
+  "name": "Healthcare",
+  "description": "EHR, claims, clinical ops, population health \u2014 HIPAA/GDPR-aligned pipelines",
+  "skills": [
+    "phi-masking",
+    "hl7-fhir",
+    "data-quality",
+    "reconciliation",
+    "audit-trail"
+  ],
+  "rules": [
+    "PHI/PII never leaves approved secure zones without de-identification",
+    "Every transformation retains an immutable audit trail",
+    "Clinical code sets (ICD/SNOMED) versioned; mappings are reversible",
+    "Claims and encounter data must pass referential integrity before gold publish"
+  ],
+  "memories": [
+    "Nightly claims adjudication windows are fixed \u2014 late jobs escalate automatically",
+    "Patient identity resolution uses enterprise MPI keys, never raw national IDs in gold"
+  ]
+}

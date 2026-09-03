@@ -1,0 +1,21 @@
+{
+  "id": "cybersecurity",
+  "name": "Cybersecurity",
+  "description": "SIEM, threat intel, vulnerability, and security operations analytics",
+  "skills": [
+    "log-ingest",
+    "streaming",
+    "detection-engineering",
+    "data-quality"
+  ],
+  "rules": [
+    "Security logs are append-only with retention per compliance policy",
+    "IOC/threat intel enrichment must not exfiltrate sensitive payloads",
+    "Detection rule changes require review before promoting to prod detections",
+    "PII in auth logs redacted before long-term lake storage"
+  ],
+  "memories": [
+    "Clock skew across agents breaks detection correlation \u2014 NTP health first",
+    "High-volume DNS/proxy logs need aggressive partitioning and sampling for gold"
+  ]
+}

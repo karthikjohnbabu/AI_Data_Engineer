@@ -1,0 +1,22 @@
+{
+  "id": "education",
+  "name": "Education",
+  "description": "SIS, LMS, admissions, assessment, and student success analytics",
+  "skills": [
+    "sql",
+    "scd2",
+    "data-quality",
+    "ferpa",
+    "reconciliation"
+  ],
+  "rules": [
+    "Student PII protected under FERPA/GDPR; research extracts are de-identified",
+    "Enrollment and attendance reconcile same day for compliance reporting",
+    "Grade changes are audited; historical transcripts never silently mutate",
+    "Academic calendars drive term-based partitions and cohort logic"
+  ],
+  "memories": [
+    "Registration weeks create SIS API throttling \u2014 prefer CDC over full pulls",
+    "Cross-campus course catalogs need shared course keys"
+  ]
+}

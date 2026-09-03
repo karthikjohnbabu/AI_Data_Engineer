@@ -1,0 +1,2 @@
+"""Tracker — Newton module (stub)."""
+

@@ -1,0 +1,22 @@
+{
+  "id": "aerospace",
+  "name": "Aerospace & Defense",
+  "description": "Flight ops, MRO, supply chain, and controlled technical data pipelines",
+  "skills": [
+    "time-series",
+    "mro",
+    "traceability",
+    "audit-trail",
+    "data-quality"
+  ],
+  "rules": [
+    "Airworthiness and maintenance records are immutable after certification sign-off",
+    "Export-controlled data stays in approved regions and systems",
+    "Part serial/lot traceability required for safety recalls",
+    "Flight data analysis separates operational from safety investigation lanes"
+  ],
+  "memories": [
+    "Aircraft effectivity (tail number) keys all reliability marts",
+    "OEM tech pubs updates drive frequent schema/version bumps"
+  ]
+}

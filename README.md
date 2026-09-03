@@ -1,505 +1,130 @@
-# AI Data Engineer — Agent Platform
+# Newton · The AI Data Engineer
 
-An internal AI Data Engineering Agent dashboard that automates the full lifecycle of Jira tickets — from triage and root-cause analysis through code generation, testing, PR creation, and deployment validation.
+Newton is an autonomous / semi-autonomous **AI Data Engineering platform**.
 
-Built for data engineering teams running ETL pipelines on AWS, Databricks, and Redshift. Designed for Betfred/BBees and similar client engagements.
+It takes engineering work from **Jira, Microsoft Teams, Slack, Web UI, or API** and executes a **configurable** engineering lifecycle — never a hard-coded DEV → UAT → PROD path.
+
+**Cursor is only the IDE used to develop Newton.** Production Newton has **zero** Cursor runtime dependency. A clean checkout runs with:
+
+```bash
+cp .env.example .env
+docker compose up --build
+# or: make install && make dev-backend / make dev-frontend
+```
 
 **Repository:** https://github.com/karthikjohnbabu/AI_Data_Engineer
 
 ---
 
-## What it does
-
-A data engineer selects or submits a Jira ticket. An AI agent then:
-
-1. **Triages** the ticket (classify severity and type)
-2. **Investigates** root cause using architecture memory and past incidents
-3. **Generates** a code fix with diffs
-4. **Runs** unit, integration, and data quality tests
-5. **Validates** row counts, schema, and reconciliation
-6. **Creates** a pull request for human review
-7. **Deploys** through DEV → UAT → PROD with approval gates
-
-All of this is visible in one dashboard — not a chatbot.
-
----
-
-## Features (Prasath Anna requirements)
-
-| Feature | Status | Location |
-|---------|--------|----------|
-| Tech stack detection (AWS, Jira, Bitbucket, Jenkins) | Done | `/tech-stack` |
-| AWS Dev / UAT / Prod environment display | Done | `/tech-stack` |
-| Credential management (stored in backend) | Done | `/settings` |
-| Domain baselines (Pharma, Finance, Betting, Nursery) | Done | `/onboarding` |
-| New vs existing project setup | Done | `/onboarding` |
-| Jira Phase 1–4 phased checklist | Done | Ticket detail + `/workflows` |
-| Natural language workflow definition | Done | `/workflows` |
-| Adaptive learning & recommendations | Done | Dashboard banner |
-| Human-in-the-loop approvals | Done | Dashboard banner |
-| Slack integration (bot + approval gate) | Done | API `/api/notifications/slack/tag` |
-| Teams integration (webhook relay) | Done | API `/api/notifications/teams/approval` |
-| Real Jira / Git / LLM / SSO | Ready | Credentials in Settings or `.env` |
-
-### Domain baselines
-
-- **Pharmaceutical** — GxP, audit trails, PHI masking
-- **Finance** — SOX, reconciliation, regulatory reporting
-- **Betting** — Betfred/BBees, incremental loads, data freeze (Busybees context)
-- **Nursery** — enrollment, attendance, Ofsted compliance
-
-### Jira phased workflow
-
-| Phase | Tasks |
-|-------|-------|
-| **Phase 1** | Triage and analysis |
-| **Phase 2** | Dev testing, Jira testing, validation, merge to dev, PR + README |
-| **Phase 3** | PR movement, localhost/dev deployments |
-| **Phase 4** | Ticket closure, post-validation, memory update |
-
-Custom phases can be defined in natural language at `/workflows`.
-
----
-
 ## Architecture
 
-The frontend never talks to Jira, Git, or AWS directly. Everything goes through the Agent API so the underlying agent engine can be swapped without UI changes.
+### Newton Core (shared, company-agnostic)
+
+Orchestration, triage, investigation, planning, coding, testing, validation, Git/PR, approvals, **workflow engine**, security, audit, observability, notifications, memory/knowledge retrieval, skill execution, provider integrations.
+
+### Tenant / customer context (dynamic)
+
+Architecture, repos, environments, Jira projects, standards, incidents, custom skills, runbooks, approval policies, **branching strategy**, **workflow templates**, secrets references.
+
+### Multi-tenant and single-tenant
+
+| Mode | Env | Behaviour |
+|------|-----|-----------|
+| Multi-tenant SaaS | `NEWTON_DEPLOYMENT_MODE=multi_tenant` | Resolve tenant from `X-Tenant-Id` / auth |
+| Single-tenant enterprise | `NEWTON_DEPLOYMENT_MODE=single_tenant` + `NEWTON_TENANT_ID=busybees` | Always that tenant; **foreign tenant IDs rejected** |
+
+Same application code — no customer forks.
+
+### Configurable workflows
+
+Templates live under `backend/workflows/templates/`:
+
+- `dev_to_prod.yaml` — Company A style
+- `dev_uat_prod.yaml` — Company B style
+- `feature_to_prod.yaml` — Company C style
+- `incident_resolution.yaml`
+
+Branch policy is per-tenant (`tenant_data/<tenant>/config.yaml` → `git.branch_strategy`).
+
+### Provider abstractions
+
+Agents call interfaces (`GitProvider`, `TicketProvider`, `MessagingProvider`, `LLMProvider`, `ExecutionProvider`, `SecretProvider`) — not Bitbucket/Jira SDKs directly.
+
+### Skills, rules, memory
+
+- **Standard skills:** `backend/skills/standard/`
+- **Tenant overrides:** `tenant_data/<tenant>/skills/` (override → tenant → standard)
+- **Rules:** structured YAML under `tenant_data/<tenant>/rules/`
+- **Memory:** always queried with `tenant_id` first (isolation enforced)
+
+### Example tenants
 
 ```
-┌─────────────────┐     HTTPS      ┌─────────────────┐
-│    Frontend     │ ─────────────▶ │    Agent API    │
-│   (Next.js)     │                │   (FastAPI)     │
-└─────────────────┘                └────────┬────────┘
-                                          │
-              ┌───────────────────────────┼───────────────────────────┐
-              ▼                           ▼                           ▼
-        ┌──────────┐              ┌──────────────┐              ┌──────────┐
-        │   Jira   │              │  Agent Core  │              │   Git    │
-        └──────────┘              │              │              └──────────┘
-                                    │ Orchestrator │
-        ┌──────────┐              │ Triage       │              ┌──────────┐
-        │  Memory  │              │ Investigation│              │   AWS    │
-        └──────────┘              │ Coding       │              └──────────┘
-                                    │ Testing      │
-        ┌──────────┐              │ Validation   │              ┌──────────┐
-        │  Skills  │              └──────────────┘              │Databricks│
-        └──────────┘                                            └──────────┘
+tenant_data/
+  newton/
+  example_customer/
+  busybees/
 ```
 
 ---
 
-## Tech stack
-
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 16, TypeScript, Tailwind CSS, Recharts |
-| Backend | Python 3.11+, FastAPI, Pydantic |
-| Database | SQLite (agent runs, ticket state) |
-| Agents | Rule-based (local LLM); ready for Bedrock / OpenAI |
-| Integrations | Jira, GitHub/Bitbucket (mock mode by default) |
-
----
-
-## Prerequisites
-
-Install these before starting:
-
-| Tool | Version | Check |
-|------|---------|-------|
-| **Node.js** | 20+ | `node --version` |
-| **npm** | 10+ | `npm --version` |
-| **Python** | 3.11+ | `python --version` |
-| **pip** | latest | `pip --version` |
-| **Git** | any | `git --version` |
-| **Docker** _(optional)_ | 24+ | `docker --version` |
-
----
-
-## Getting started
-
-### 1. Clone the repository
+## Local development
 
 ```bash
-git clone https://github.com/karthikjohnbabu/AI_Data_Engineer.git
-cd AI_Data_Engineer
-```
-
-### 2. Install dependencies
-
-**Using Make (macOS / Linux / Git Bash on Windows):**
-
-```bash
-make install
-```
-
-**Manual install (Windows PowerShell):**
-
-```powershell
-# Frontend
-cd frontend
-npm install
-cd ..
-
-# Backend
-pip install fastapi "uvicorn[standard]" pydantic pydantic-settings
-```
-
-### 3. Configure environment
-
-Copy the example env files:
-
-```bash
-# Root (backend config)
 cp .env.example .env
-
-# Frontend
-cp frontend/.env.example frontend/.env.local
+make install
+make dev-backend   # :8000
+make dev-frontend  # :3000
 ```
 
-Default values work out of the box for local demo — no credentials required.
-
-| File | Purpose |
-|------|---------|
-| `.env` | Backend settings (Jira, Git, LLM, API key) |
-| `frontend/.env.local` | Frontend API URL (`NEXT_PUBLIC_API_URL`) |
-
-### 4. Start the backend (Terminal 1)
+Phase 1 architecture tests:
 
 ```bash
-make dev-backend
+cd backend && ../.venv/bin/pytest tests/unit/test_architecture_phase1.py -v
 ```
 
-Or manually:
+Useful APIs:
 
-```bash
-cd backend
-python -m uvicorn api.main:app --reload --port 8000
-```
+- `GET /api/health` — includes `deploymentMode`
+- `GET /api/tenants`
+- `GET /api/tenants/context` — header `X-Tenant-Id: example_customer`
+- `POST /api/tenants/workflows/run`
 
-Verify the API is running:
-
-- Health check: http://localhost:8000/api/health
-- Interactive API docs: http://localhost:8000/docs
-
-### 5. Start the frontend (Terminal 2)
-
-```bash
-make dev-frontend
-```
-
-Or manually:
-
-```bash
-cd frontend
-npm run dev
-```
-
-Open the dashboard: **http://localhost:3000**
-
-On first visit you will be guided through **Project Setup** (`/onboarding`):
-1. Select domain (Betting for Betfred/BBees)
-2. Choose new or existing project
-3. Enter client name and context
-
-Then configure credentials at **Settings** and view your stack at **Tech Stack**.
-
-### 6. Seed demo data (optional)
-
-Pre-run agents on sample tickets so the Runs and Reports pages have data:
-
-```bash
-make seed-demo
-```
-
----
-
-## Quick start with Docker
-
-If you prefer not to install Python/Node locally:
+Docker:
 
 ```bash
 docker compose up --build
 ```
 
-| Service | URL |
-|---------|-----|
-| Frontend | http://localhost:3000 |
-| API | http://localhost:8000 |
-| API docs | http://localhost:8000/docs |
+---
 
-Stop containers:
+## Pipeline (example — not hard-coded)
 
-```bash
-make docker-down
-# or
-docker compose down
+Companies configure their own stage order. One common template:
+
+```
+Intake → Triage → Investigation → Plan → Code → Test
+→ Deploy DEV → Validate → PR → Review → Human Approval
+→ Merge → Deploy PROD → Validate → Update Jira / Memory → Notify
 ```
 
 ---
 
-## Using the dashboard
+## Security principles
 
-### Walkthrough for demo / pilot
-
-1. Open **http://localhost:3000**
-2. Go to **Tickets** → click **New Ticket**
-3. Enter an issue, e.g. `Glue job timeout on customer_dim load`
-4. The agent runs automatically — you land on the ticket detail page
-5. Review the **timeline**, **root cause**, **code diff**, and **test results**
-6. Click **Approve**, **Reject**, **Run Again**, or **Create PR**
-7. Check **Runs** for execution history and **Deployments** for pipeline status
-
-### Sample ticket to explore
-
-If you ran `make seed-demo`, open:
-
-**http://localhost:3000/tickets/UKDATA-4821**
+- Tenant isolation on every request and memory query
+- Secrets referenced by name/ID in tenant config (not committed keys)
+- Production destructive ops require human approval (rules engine)
+- Execution sandbox abstraction (no arbitrary code on API hosts)
+- Structured events: `tenant_id`, `run_id`, `workflow_stage`
 
 ---
 
-## Pages
+## Docs
 
-| Page | Route | Description |
-|------|-------|-------------|
-| Dashboard | `/` | Metrics, recommendations, pending approvals |
-| Onboarding | `/onboarding` | Domain + new/existing project setup (first visit) |
-| Tech Stack | `/tech-stack` | Detected services, AWS Dev/UAT/Prod |
-| Settings | `/settings` | AWS, Jira, Bitbucket, Jenkins, Slack, Teams credentials |
-| Tickets | `/tickets` | Searchable ticket table; submit new tickets |
-| Ticket detail | `/tickets/[id]` | Timeline, phased checklist, diffs, tests |
-| Workflows | `/workflows` | Phase 1–4 checklist; define custom via natural language |
-| Runs | `/runs` | Agent execution history |
-| Deployments | `/deployments` | DEV → UAT → PROD pipeline |
-| Skills | `/skills` | Agent capabilities (auto-updated from patterns) |
-| Memory | `/memory` | Architecture decisions, standards, incidents |
-| Reports | `/reports` | Success rate, classifications, recent runs |
-| Integrations | `/integrations` | Jira, Git, AWS, Slack, Teams status |
-| Login | `/login` | API key sign-in (when `API_KEY` is set) |
-
----
-
-## Agent pipeline
-
-```
-Jira analysed
-    → Architecture loaded
-    → Repository identified
-    → Memory searched
-    → Root cause identified
-    → Fix generated
-    → Tests executed
-    → PR created
-    → Deployment validated
-```
-
-| Agent | Location | Status |
-|-------|----------|--------|
-| Orchestrator | `backend/agents/orchestrator/` | Done |
-| Triage | `backend/agents/triage/` | Done (rule-based) |
-| Investigation | `backend/agents/investigation/` | Done (rule-based) |
-| Coding | `backend/agents/coding/` | Done (template-based) |
-| Testing | `backend/agents/testing/` | Done (simulated) |
-| Validation | `backend/agents/validation/` | Done (simulated) |
-| PR / Deployment | `backend/integrations/github/` | Mock (ready for real Git) |
-
----
-
-## API endpoints
-
-Base URL: `http://localhost:8000/api`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/health` | Health check and config summary |
-| `GET` | `/dashboard/metrics` | Dashboard KPIs |
-| `GET` | `/dashboard/activity` | Activity chart data |
-| `GET` | `/dashboard/resolution` | Resolution breakdown |
-| `GET` | `/tickets` | List all tickets |
-| `POST` | `/tickets` | Submit new ticket and run agent |
-| `GET` | `/tickets/{id}` | Ticket detail |
-| `POST` | `/tickets/{id}/run-again` | Re-run agent pipeline |
-| `POST` | `/tickets/{id}/approve` | Approve ticket |
-| `POST` | `/tickets/{id}/reject` | Reject ticket |
-| `POST` | `/tickets/{id}/create-pr` | Create pull request |
-| `GET` | `/runs` | List agent runs |
-| `GET` | `/deployments` | List deployments |
-| `GET` | `/reports/summary` | Report analytics |
-| `GET` | `/integrations` | Integration status |
-| `GET` | `/skills` | Agent skills |
-| `GET` | `/memory` | Organizational memory |
-| `POST` | `/auth/verify` | Verify API key |
-
-Full interactive docs: http://localhost:8000/docs
-
----
-
-## Configuration
-
-### Environment variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `API_KEY` | _(empty)_ | Set to enable API key auth on protected endpoints |
-| `CORS_ORIGINS` | `http://localhost:3000` | Allowed frontend origins (comma-separated) |
-| `JIRA_MODE` | `mock` | `mock` or `jira` |
-| `GIT_PROVIDER` | `mock` | `mock`, `github`, or `bitbucket` |
-| `LLM_PROVIDER` | `local` | `local`, `bedrock`, `openai`, `anthropic` |
-| `JIRA_URL` | — | Jira Cloud URL (when `JIRA_MODE=jira`) |
-| `JIRA_EMAIL` | — | Jira account email |
-| `JIRA_API_TOKEN` | — | Jira API token |
-| `JIRA_PROJECT_KEY` | `UKDATA` | Jira project key |
-| `GITHUB_TOKEN` | — | GitHub PAT (when `GIT_PROVIDER=github`) |
-| `GITHUB_REPO` | — | e.g. `org/repo` |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8000/api` | Frontend → API URL |
-
-### Enable API key auth (optional)
-
-```bash
-# .env
-API_KEY=your-secret-key-here
-```
-
-Restart the backend, then sign in at http://localhost:3000/login with that key.
-
-### Switch to real integrations
-
-When credentials are available, update `.env` only — no frontend changes needed:
-
-```bash
-JIRA_MODE=jira
-JIRA_URL=https://your-org.atlassian.net
-JIRA_EMAIL=you@company.com
-JIRA_API_TOKEN=your-token
-JIRA_PROJECT_KEY=UKDATA
-
-GIT_PROVIDER=github
-GITHUB_TOKEN=ghp_...
-GITHUB_REPO=org/uk-data-platform
-
-LLM_PROVIDER=bedrock   # when AWS keys are available
-```
-
----
-
-## Project structure
-
-```
-AI_Data_Engineer/
-├── frontend/                 # Next.js dashboard
-│   ├── src/
-│   │   ├── app/              # Pages (App Router)
-│   │   ├── components/       # Reusable UI components
-│   │   ├── services/         # API client layer
-│   │   ├── types/            # TypeScript types
-│   │   └── data/mock/        # Fallback mock data
-│   └── package.json
-│
-├── backend/                  # Python Agent API
-│   ├── agents/               # Triage, investigation, coding, testing, validation
-│   ├── api/                  # FastAPI routes and middleware
-│   ├── config/               # Settings from environment
-│   ├── data/mock/            # Mock JSON data
-│   ├── database/             # SQLite persistence
-│   ├── integrations/         # Jira, GitHub (mock + real stubs)
-│   ├── llm/                  # LLM provider abstraction
-│   ├── models/               # Pydantic models
-│   └── services/             # Business logic
-│
-├── infrastructure/docker/    # Dockerfiles
-├── scripts/seed/             # Demo seed script
-├── docker-compose.yml
-├── Makefile
-└── README.md
-```
-
----
-
-## Make commands
-
-| Command | Description |
-|---------|-------------|
-| `make install` | Install frontend and backend dependencies |
-| `make dev-backend` | Start FastAPI on port 8000 (with hot reload) |
-| `make dev-frontend` | Start Next.js on port 3000 |
-| `make seed-demo` | Pre-run agents on 4 sample tickets |
-| `make docker-up` | Build and start Docker containers |
-| `make docker-down` | Stop Docker containers |
-| `make test` | Run backend tests |
-| `make lint` | Lint backend and frontend |
-
----
-
-## Troubleshooting
-
-### Frontend shows empty data or errors
-
-1. Confirm the backend is running: http://localhost:8000/api/health
-2. Check `frontend/.env.local` has `NEXT_PUBLIC_API_URL=http://localhost:8000/api`
-3. Restart the frontend after changing `.env.local`
-
-### `ModuleNotFoundError` when starting backend
-
-Run from the `backend` directory:
-
-```bash
-cd backend
-python -m uvicorn api.main:app --reload --port 8000
-```
-
-### Port already in use
-
-```bash
-# Windows — find and kill process on port 8000
-netstat -ano | findstr :8000
-taskkill /PID <pid> /F
-
-# macOS / Linux
-lsof -ti:8000 | xargs kill -9
-```
-
-### Runs page is empty
-
-Seed demo data:
-
-```bash
-make seed-demo
-```
-
-Or open any ticket and click **Run Again**.
-
-### CORS errors in browser
-
-Ensure `CORS_ORIGINS` in `.env` includes your frontend URL:
-
-```bash
-CORS_ORIGINS=http://localhost:3000
-```
-
----
-
-## Roadmap
-
-| Item | Status | Needs |
-|------|--------|-------|
-| Tech stack display + credential UI | Done | — |
-| Domain baselines + onboarding | Done | — |
-| Jira Phase 1–4 workflow | Done | — |
-| NL workflow builder | Done | — |
-| Adaptive recommendations | Done | — |
-| Slack / Teams human-in-the-loop | Done | Webhook URLs in Settings |
-| Real Jira integration | Ready | Save creds in Settings or set `JIRA_MODE=jira` |
-| Real GitHub / Bitbucket | Ready | Save creds in Settings or set `GIT_PROVIDER` |
-| LLM (Bedrock / OpenAI) | Ready | Set `LLM_PROVIDER=openai` or `bedrock` |
-| Credential encryption at rest | Done | Set `CREDENTIALS_SECRET_KEY` in `.env` |
-| AWS auto-provisioning (new projects) | Done | Triggered on new-project onboarding |
-| Daily skill learning scheduler | Done | Runs at 23:00 UTC |
-| SSO auth | Pending | Azure AD / Okta |
-| Formal product name + GTM | Business | See `docs/GTM.md` |
-| LinkedIn CEO/CTO outreach | Business | See `docs/GTM.md` |
-| Team requirements doc | Done | `docs/REQUIREMENTS.md` |
-| Demo script | Done | `docs/DEMO_SCRIPT.md` |
-
----
+- `docs/architecture/OVERVIEW.md`
+- `docs/architecture/PITCH.md`
+- `docs/architecture/PHASE1.md` — what Phase 1 delivered and remaining TODOs
 
 ## License
 

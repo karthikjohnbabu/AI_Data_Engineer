@@ -1,0 +1,22 @@
+{
+  "id": "technology",
+  "name": "Technology & SaaS",
+  "description": "Product analytics, usage metering, billing, support, and platform telemetry",
+  "skills": [
+    "event-pipelines",
+    "kafka",
+    "dbt",
+    "data-quality",
+    "cost-observability"
+  ],
+  "rules": [
+    "Product events are schema-registered; unknown events quarantine",
+    "Usage metering for billing is immutable after invoice freeze",
+    "Customer data isolation enforced for multi-tenant exports",
+    "Feature flags and experiments tagged on events for trustworthy analysis"
+  ],
+  "memories": [
+    "SDK version skew causes event schema drift \u2014 track client_version",
+    "Support ticket \u2194 product usage joins power churn models"
+  ]
+}

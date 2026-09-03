@@ -1,0 +1,22 @@
+{
+  "id": "energy",
+  "name": "Energy & Utilities",
+  "description": "Generation, grid, smart meters, trading, and outage management",
+  "skills": [
+    "time-series",
+    "meter-data",
+    "scada",
+    "reconciliation",
+    "streaming"
+  ],
+  "rules": [
+    "Meter reads are immutable after settlement; corrections are adjustment records",
+    "Outage and restoration events must sequence correctly for SLA reporting",
+    "Market bid/offer data follows market operator cut-off windows",
+    "Critical infrastructure telemetry access is least-privilege and audited"
+  ],
+  "memories": [
+    "DST transitions break naive interval arithmetic \u2014 always use TZ-aware intervals",
+    "AMI late reads common; settlement uses estimate-then-true-up pattern"
+  ]
+}

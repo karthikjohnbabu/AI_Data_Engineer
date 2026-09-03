@@ -1,0 +1,2 @@
+"""Logger — Newton module (stub)."""
+

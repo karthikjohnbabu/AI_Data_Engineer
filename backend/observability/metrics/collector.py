@@ -1,0 +1,2 @@
+"""Collector — Newton module (stub)."""
+
