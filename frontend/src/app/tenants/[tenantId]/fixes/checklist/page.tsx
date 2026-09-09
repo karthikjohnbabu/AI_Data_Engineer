@@ -271,7 +271,7 @@ export default function FixesChecklistPage() {
                     disabled={running}
                     onClick={() => void run("phase")}
                     className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-[11px] font-semibold disabled:opacity-40"
-                    style={{ background: theme.accent, color: "#0b0d10" }}
+                    style={{ background: theme.accent, color: theme.onAccent }}
                   >
                     <Play className="h-3 w-3" />
                     Run whole phase

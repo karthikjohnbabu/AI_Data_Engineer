@@ -14,13 +14,22 @@ git:
 cloud:
   provider: aws
   region: eu-west-2
-  environments: [dev, uat, prod]
+  environments:
+  - dev
+  - uat
+  - prod
   credentials_secret: newton/example_customer/aws
 workflow:
-  default_template: feature_to_prod
+  default_template: dev_to_prod
 skills:
   include_standard: true
   allow_overrides: true
 notifications:
-  channels: [in_app, slack]
+  channels:
+  - in_app
+  - slack
   slack_enabled: true
+storage:
+  backend: filesystem
+rules:
+  enforce_prod_destructive_guard: true

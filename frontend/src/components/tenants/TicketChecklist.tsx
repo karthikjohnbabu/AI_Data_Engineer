@@ -177,7 +177,7 @@ export function TicketChecklist({
             disabled={running}
             onClick={() => void runPhase()}
             className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold disabled:opacity-50"
-            style={{ background: theme.accent, color: "#0b0d10" }}
+            style={{ background: theme.accent, color: theme.onAccent }}
           >
             {running ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />

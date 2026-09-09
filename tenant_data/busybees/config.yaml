@@ -1,6 +1,6 @@
 tenant_id: busybees
 name: BusyBees
-deployment_mode: single_tenant
+deployment_mode: multi_tenant
 git:
   provider: bitbucket
   repository: busybees/uk-data-platform
@@ -14,7 +14,10 @@ git:
 cloud:
   provider: aws
   region: eu-west-2
-  environments: [dev, uat, prod]
+  environments:
+  - dev
+  - uat
+  - prod
   credentials_secret: newton/busybees/aws
 workflow:
   default_template: dev_uat_prod
@@ -22,5 +25,11 @@ skills:
   include_standard: true
   allow_overrides: true
 notifications:
-  channels: [in_app, teams]
+  channels:
+  - in_app
+  - teams
   teams_enabled: true
+storage:
+  backend: filesystem
+rules:
+  enforce_prod_destructive_guard: true

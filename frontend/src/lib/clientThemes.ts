@@ -5,6 +5,8 @@ export interface ClientTheme {
   productLabel: string;
   accent: string;
   accentSoft: string;
+  /** Text colour on accent-filled buttons. */
+  onAccent: string;
   /** Soft nav selection — avoid loud accent text on menus. */
   navActiveBg: string;
   navActiveText: string;
@@ -26,7 +28,7 @@ export interface ClientTheme {
 /**
  * Brand-led tenant skins.
  * Betfred ≈ black + signature yellow/gold.
- * Busy Bees ≈ navy rail + bee yellow on a warm light canvas.
+ * Busy Bees ≈ deep navy canvas + bee yellow (readable dark UI).
  */
 const THEMES: Record<string, ClientTheme> = {
   betfred: {
@@ -34,6 +36,7 @@ const THEMES: Record<string, ClientTheme> = {
     productLabel: "Betfred Data Workspace",
     accent: "#ffcc00",
     accentSoft: "rgba(255, 204, 0, 0.16)",
+    onAccent: "#0b0d10",
     navActiveBg: "rgba(255, 204, 0, 0.14)",
     navActiveText: "#ffcc00",
     rail: "#0a0a0a",
@@ -54,28 +57,30 @@ const THEMES: Record<string, ClientTheme> = {
     id: "busybees",
     productLabel: "Busy Bees Analytics",
     accent: "#f5b800",
-    accentSoft: "rgba(245, 184, 0, 0.28)",
-    navActiveBg: "rgba(245, 184, 0, 0.22)",
-    navActiveText: "#ffe566",
-    rail: "#003366",
-    railBorder: "#004c99",
-    railText: "#ffffff",
-    railMuted: "#b8c9de",
-    surface: "#fffdf7",
-    surfaceAlt: "#fff8e8",
-    text: "#003366",
-    muted: "#4a6a8a",
-    chip: "#ffe9a8",
+    accentSoft: "rgba(245, 184, 0, 0.18)",
+    onAccent: "#001428",
+    navActiveBg: "rgba(245, 184, 0, 0.16)",
+    navActiveText: "#ffd54a",
+    rail: "#001a33",
+    railBorder: "#1a3a5c",
+    railText: "#f4f7fb",
+    railMuted: "#8fa8c4",
+    surface: "#0b1c33",
+    surfaceAlt: "#102a45",
+    text: "#eef3f9",
+    muted: "#9bb4ce",
+    chip: "rgba(245, 184, 0, 0.14)",
     heroGradient:
-      "radial-gradient(ellipse 70% 50% at 100% 0%, rgba(245,184,0,0.32), transparent 55%), radial-gradient(ellipse 50% 40% at 0% 0%, rgba(0,51,102,0.1), transparent 50%), linear-gradient(180deg, #fffdf7 0%, #fff3d1 100%)",
+      "radial-gradient(ellipse 70% 50% at 100% 0%, rgba(245,184,0,0.22), transparent 55%), radial-gradient(ellipse 55% 45% at 0% 0%, rgba(0,80,160,0.35), transparent 50%), linear-gradient(180deg, #001428 0%, #0a1a30 55%, #0d2238 100%)",
     fontDisplay: "var(--font-geist-sans)",
-    vibe: "Busy Bees navy & bee yellow",
+    vibe: "Busy Bees deep navy & bee yellow",
   },
   default: {
     id: "default",
     productLabel: "Client workspace",
     accent: "#0ea5e9",
     accentSoft: "rgba(14, 165, 233, 0.14)",
+    onAccent: "#041018",
     navActiveBg: "rgba(255, 255, 255, 0.06)",
     navActiveText: "#e8eef7",
     rail: "#0b0f17",

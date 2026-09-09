@@ -26,6 +26,12 @@ export default function ClientRulesPage() {
         </p>
       </header>
       <div className="space-y-2">
+        {(dash?.rules || []).length === 0 && (
+          <p className="text-sm" style={{ color: theme.muted }}>
+            No rules for this tenant yet. Add *.yaml under
+            tenant_data/{tenantId}/rules/.
+          </p>
+        )}
         {(dash?.rules || []).map((r) => (
           <div
             key={r.id}

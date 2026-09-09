@@ -1,6 +1,7 @@
 """Tenant-aware API routes — Phase 1 architecture surface."""
 
-from fastapi import APIRouter, Header, HTTPException, Query
+from fastapi import APIRouter, File, Header, HTTPException, Query, UploadFile
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 from config.settings import get_settings
@@ -200,7 +201,12 @@ async def tenant_admin_overview():
         secrets = ws.get("secretsConfigured") or {}
         secrets_ok = sum(1 for v in secrets.values() if v)
         skills = [
-            {"id": s.get("id"), "name": s.get("name")}
+            {
+                "id": s.get("id"),
+                "name": s.get("name"),
+                "source": s.get("source"),
+                "description": s.get("description") or "",
+            }
             for s in (ws.get("skills") or [])
             if isinstance(s, dict)
         ]
@@ -397,4 +403,72 @@ async def run_tenant_workflow(
         "runId": result.run.run_id,
         "stages": list(result.stage_outputs.keys()),
         "branch": branch,
+    }
+
+
+@router.get("/tenants/skills/packs")
+async def tenant_skill_packs(
+    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
+    tenant_id: str | None = Query(default=None),
+):
+    """List on-disk tenant skill folders (downloadable packs)."""
+    ctx = _resolve(x_tenant_id, tenant_id)
+    from tenants.skill_pack import list_skill_folders
+    from tenants.workspace import build_workspace
+
+    ws = build_workspace(ctx.tenant_id)
+    return {
+        "tenantId": ctx.tenant_id,
+        "packs": list_skill_folders(ctx.tenant_id),
+        "skills": ws.get("skills") or [],
+    }
+
+
+@router.get("/tenants/skills/download")
+async def tenant_skills_download(
+    skillId: str | None = Query(default=None),
+    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
+    tenant_id: str | None = Query(default=None),
+):
+    """Download tenant skill pack(s) as a zip."""
+    ctx = _resolve(x_tenant_id, tenant_id)
+    from tenants.skill_pack import build_skills_zip
+
+    try:
+        raw, filename = build_skills_zip(ctx.tenant_id, skillId)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return Response(
+        content=raw,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.post("/tenants/skills/upload")
+async def tenant_skills_upload(
+    file: UploadFile = File(...),
+    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
+    tenant_id: str | None = Query(default=None),
+):
+    """Upload a zip of skill folders into this tenant's skills/ directory."""
+    ctx = _resolve(x_tenant_id, tenant_id)
+    from tenants.skill_pack import unpack_skills_zip
+    from tenants.workspace import build_workspace
+
+    name = (file.filename or "").lower()
+    if not name.endswith(".zip"):
+        raise HTTPException(status_code=400, detail="Upload a .zip skill pack")
+    raw = await file.read()
+    try:
+        result = unpack_skills_zip(ctx.tenant_id, raw)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    ws = build_workspace(ctx.tenant_id)
+    return {
+        **result,
+        "skills": ws.get("skills") or [],
+        "message": f"Uploaded {result['count']} skill pack(s)",
     }

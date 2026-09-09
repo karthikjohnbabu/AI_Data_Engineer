@@ -1,4 +1,5 @@
 import { apiFetch, apiFetchSafe } from "@/services/api";
+import { ensureApiKeyBootstrapped, getApiKey } from "@/utils/auth";
 
 export interface TenantListItem {
   tenantId: string;
@@ -116,7 +117,12 @@ export interface AdminTenantRow {
   name: string;
   skills: number;
   rules: number;
-  skillList: { id?: string; name?: string }[];
+  skillList: {
+    id?: string;
+    name?: string;
+    source?: string;
+    description?: string;
+  }[];
   ruleList: { id?: string; name?: string }[];
   health: {
     status: string;
@@ -310,4 +316,87 @@ export async function runWorkflowStage(
     method: "POST",
     body: JSON.stringify({ stageId, ticketId, template }),
   });
+}
+
+export interface SkillPackInfo {
+  id: string;
+  path: string;
+  hasManifest: boolean;
+  files: string[];
+}
+
+export async function listTenantSkillPacks(tenantId: string): Promise<{
+  tenantId: string;
+  packs: SkillPackInfo[];
+  skills: TenantWorkspace["skills"];
+}> {
+  return apiFetch("/tenants/skills/packs", {
+    headers: withTenant(tenantId),
+  });
+}
+
+function apiBase(): string {
+  return process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
+}
+
+function authHeaders(tenantId: string): HeadersInit {
+  ensureApiKeyBootstrapped();
+  const headers: Record<string, string> = {
+    "X-Tenant-Id": tenantId,
+  };
+  const key = getApiKey();
+  if (key) headers["X-API-Key"] = key;
+  return headers;
+}
+
+/** Trigger browser download of tenant skill zip. */
+export async function downloadTenantSkillsZip(
+  tenantId: string,
+  skillId?: string
+): Promise<void> {
+  const qs = skillId ? `?skillId=${encodeURIComponent(skillId)}` : "";
+  const res = await fetch(`${apiBase()}/tenants/skills/download${qs}`, {
+    headers: authHeaders(tenantId),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Download failed (${res.status})`);
+  }
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") || "";
+  const match = /filename="?([^"]+)"?/.exec(cd);
+  const filename =
+    match?.[1] ||
+    (skillId ? `${tenantId}-${skillId}-skill.zip` : `${tenantId}-skills.zip`);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export async function uploadTenantSkillsZip(
+  tenantId: string,
+  file: File
+): Promise<{
+  message: string;
+  count: number;
+  skills: TenantWorkspace["skills"];
+  filesWritten: string[];
+}> {
+  const body = new FormData();
+  body.append("file", file);
+  const res = await fetch(`${apiBase()}/tenants/skills/upload`, {
+    method: "POST",
+    headers: authHeaders(tenantId),
+    body,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Upload failed (${res.status})`);
+  }
+  return res.json();
 }

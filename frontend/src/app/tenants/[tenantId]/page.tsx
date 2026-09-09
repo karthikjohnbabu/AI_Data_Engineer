@@ -13,13 +13,38 @@ export default function ClientOverviewPage() {
   const tenantId = params.tenantId;
   const theme = getClientTheme(tenantId);
   const [dash, setDash] = useState<ClientDashboard | null>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getClientDashboard(tenantId).then(setDash);
+    setLoading(true);
+    setError("");
+    getClientDashboard(tenantId)
+      .then((d) => {
+        setDash(d);
+        if (!d) setError("Could not load workspace — is the API running?");
+      })
+      .finally(() => setLoading(false));
   }, [tenantId]);
 
-  if (!dash) {
+  if (loading) {
     return <p style={{ color: theme.muted }}>Loading workspace…</p>;
+  }
+
+  if (!dash) {
+    return (
+      <div className="space-y-3">
+        <h1 className="text-2xl font-semibold" style={{ color: theme.text }}>
+          Workspace unavailable
+        </h1>
+        <p className="text-sm" style={{ color: theme.muted }}>
+          {error || "API returned no dashboard for this tenant."}
+        </p>
+        <p className="text-xs" style={{ color: theme.muted }}>
+          Start the backend on :8000, then refresh. Tenant id: {tenantId}
+        </p>
+      </div>
+    );
   }
 
   const m = dash.metrics;
@@ -33,20 +58,39 @@ export default function ClientOverviewPage() {
         >
           Overview
         </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight" style={{ color: theme.text }}>
+        <h1
+          className="mt-2 text-3xl font-semibold tracking-tight"
+          style={{ color: theme.text }}
+        >
           What&apos;s going on
         </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed" style={{ color: theme.muted }}>
+        <p
+          className="mt-2 max-w-2xl text-sm leading-relaxed"
+          style={{ color: theme.muted }}
+        >
           Tickets, pipeline, fixes, lineage and production reports for{" "}
-          <strong style={{ color: theme.text }}>{dash.name}</strong> — one place,
-          tenant-isolated.
+          <strong style={{ color: theme.text }}>{dash.name}</strong> — same
+          portal features for every tenant; skills and rules stay tenant-local.
         </p>
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricTile tenantId={tenantId} label="Tickets" value={m.ticketsTotal} hint={`${m.ticketsDone} fixed`} />
-        <MetricTile tenantId={tenantId} label="In pipeline" value={m.ticketsInPipeline} />
-        <MetricTile tenantId={tenantId} label="Skills / rules" value={`${m.skills} / ${m.rules}`} />
+        <MetricTile
+          tenantId={tenantId}
+          label="Tickets"
+          value={m.ticketsTotal}
+          hint={`${m.ticketsDone} fixed`}
+        />
+        <MetricTile
+          tenantId={tenantId}
+          label="In pipeline"
+          value={m.ticketsInPipeline}
+        />
+        <MetricTile
+          tenantId={tenantId}
+          label="Skills / rules"
+          value={`${m.skills} / ${m.rules}`}
+        />
         <MetricTile
           tenantId={tenantId}
           label="Proposed solutions"
@@ -63,7 +107,10 @@ export default function ClientOverviewPage() {
             style={{ borderColor: theme.railBorder, background: theme.surface }}
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-semibold" style={{ color: theme.text }}>
+              <h2
+                className="text-sm font-semibold"
+                style={{ color: theme.text }}
+              >
                 {col.label}
               </h2>
               <span
@@ -84,13 +131,22 @@ export default function ClientOverviewPage() {
                   key={item.id}
                   href={`/tenants/${tenantId}/fixes/${item.id}`}
                   className="block rounded-xl border px-3 py-2.5 transition hover:opacity-90"
-                  style={{ borderColor: theme.railBorder, background: theme.surfaceAlt }}
+                  style={{
+                    borderColor: theme.railBorder,
+                    background: theme.surfaceAlt,
+                  }}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium" style={{ color: theme.text }}>
+                    <span
+                      className="text-sm font-medium"
+                      style={{ color: theme.text }}
+                    >
                       {item.jira}
                     </span>
-                    <span className="text-[11px]" style={{ color: theme.muted }}>
+                    <span
+                      className="text-[11px]"
+                      style={{ color: theme.muted }}
+                    >
                       {item.status}
                     </span>
                   </div>
@@ -140,17 +196,31 @@ export default function ClientOverviewPage() {
           </Link>
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
-          {(dash.productionReports.checks || []).map((c) => (
+          {(dash.productionReports?.checks || []).length === 0 && (
+            <p className="text-sm" style={{ color: theme.muted }}>
+              No production checks configured for this tenant yet.
+            </p>
+          )}
+          {(dash.productionReports?.checks || []).map((c) => (
             <div
               key={c.id}
               className="rounded-xl border px-3 py-3"
-              style={{ borderColor: theme.railBorder, background: theme.surfaceAlt }}
+              style={{
+                borderColor: theme.railBorder,
+                background: theme.surfaceAlt,
+              }}
             >
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium" style={{ color: theme.text }}>
+                <p
+                  className="text-sm font-medium"
+                  style={{ color: theme.text }}
+                >
                   {c.name}
                 </p>
-                <StatusChip tenantId={tenantId} status={c.status || "pending"} />
+                <StatusChip
+                  tenantId={tenantId}
+                  status={c.status || "pending"}
+                />
               </div>
               {c.ticket && (
                 <p className="mt-1 text-xs" style={{ color: theme.muted }}>
@@ -165,7 +235,13 @@ export default function ClientOverviewPage() {
   );
 }
 
-function StatusChip({ tenantId, status }: { tenantId: string; status: string }) {
+function StatusChip({
+  tenantId,
+  status,
+}: {
+  tenantId: string;
+  status: string;
+}) {
   const theme = getClientTheme(tenantId);
   const tone =
     status === "pass"
@@ -176,7 +252,10 @@ function StatusChip({ tenantId, status }: { tenantId: string; status: string }) 
           ? "#fbbf24"
           : theme.accent;
   return (
-    <span className="rounded-full px-2 py-0.5 text-[11px] font-medium" style={{ color: tone, background: theme.chip }}>
+    <span
+      className="rounded-full px-2 py-0.5 text-[11px] font-medium"
+      style={{ color: tone, background: theme.chip }}
+    >
       {status}
     </span>
   );

@@ -1,21 +1,26 @@
 # Tenant data
 
 Each customer (and Newton itself) is a **separate tenant directory**.
-Skills, rules, lineage, production reports, and secrets never cross tenants.
+**Portal features are the same for every tenant** (Overview, Tickets, Fixes /
+Checklist / Results, Lineage, Reports). **Skills and rules are tenant-specific.**
 
 ```
 tenant_data/
   <tenant_id>/
     config.yaml              # identity, git, cloud, workflow
-    skills/                  # this tenant's work skills (skill.yaml + SKILL.md)
-    rules/                   # this tenant's rules (*.yaml + optional guidance/)
-    workflows/               # tenant workflow tips / checklists
+    skills/                  # THIS tenant's work skills only
+    rules/                   # THIS tenant's rules only
+    workflows/               # tenant workflow tips
+    fixes/                   # fix packs + catalog.yaml
     lineage/                 # catalog.yaml — graph for THIS tenant only
     reports/                 # production.yaml — prod reports for THIS tenant
-    memory/                  # tenant-scoped notes (filesystem now)
+    memory/                  # tenant-scoped notes
     secrets.example.yaml     # key names only — committed
     secrets.local.yaml       # real creds — gitignored
 ```
+
+Run `python scripts/ensure_tenant_scaffold.py` after adding a tenant so the
+shared folders exist (skills/rules content stays yours).
 
 ## Tenants
 
@@ -34,6 +39,8 @@ tenant_data/
 4. Do **not** copy warehouse tables, ticket extracts, or player keys into `tenant_data`.
 5. Future MySQL: one database, `tenant_id` on every row, tenant-wise access. See `_schema/mysql_plan.md`.
 
-## Frontend testing (Betfred)
+## Frontend testing
 
-Pick tenant **Betfred** in the dashboard. Phases use `tenant_data/betfred/secrets.local.yaml` so you do not retype creds. Copy `secrets.example.yaml` → `secrets.local.yaml` and fill values locally.
+Open `/tenants/<tenant_id>` (e.g. `/tenants/busybees`). The shell sets
+`X-Tenant-Id` from the URL. Skills/rules listed are only that tenant's plus
+shared standard skills when `include_standard: true`.

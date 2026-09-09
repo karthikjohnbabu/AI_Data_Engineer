@@ -36,7 +36,7 @@ export function TenantChatDock({ tenantId }: { tenantId: string }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium shadow-lg"
-        style={{ background: theme.accent, color: "#0b0d10" }}
+        style={{ background: theme.accent, color: theme.onAccent }}
       >
         <MessageSquare className="h-4 w-4" />
         DE chat
@@ -104,7 +104,7 @@ export function TenantChatDock({ tenantId }: { tenantId: string }) {
               disabled={busy}
               onClick={() => void send()}
               className="rounded-lg px-3 py-2 text-sm font-medium"
-              style={{ background: theme.accent, color: "#0b0d10" }}
+              style={{ background: theme.accent, color: theme.onAccent }}
             >
               Send
             </button>

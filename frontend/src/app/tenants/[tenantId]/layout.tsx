@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ClientShell } from "@/components/tenants/ClientShell";
 import { getClientDashboard, type ClientDashboard } from "@/services/tenants";
+import { setTenantId } from "@/services/api";
 
 export default function ClientLayout({
   children,
@@ -16,6 +17,7 @@ export default function ClientLayout({
 
   useEffect(() => {
     if (!tenantId) return;
+    setTenantId(tenantId);
     getClientDashboard(tenantId).then(setDash);
   }, [tenantId]);
 
