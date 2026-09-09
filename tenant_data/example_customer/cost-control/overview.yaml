@@ -1,0 +1,24 @@
+tenant_id: example_customer
+title: Example Customer Cost Control
+status: placeholder
+summary: >
+  Demo FinOps placeholder. Replace with real Cost Explorer / CUR wiring for
+  this customer later.
+metrics:
+  monthToDate: "—"
+  savingsOpportunity: "—"
+  anomalies: "—"
+  budgetsConfigured: 0
+focus_areas:
+  - id: glue
+    title: ETL spend
+    blurb: Pipeline worker hours.
+  - id: storage
+    title: Storage
+    blurb: Lake and warehouse growth.
+  - id: compute
+    title: Query compute
+    blurb: Ad-hoc and scheduled queries.
+  - id: guardrails
+    title: Budget guardrails
+    blurb: Alerts and caps.

@@ -50,6 +50,7 @@ def build_workspace(tenant_id: str) -> dict[str, Any]:
     ]
     lineage = _read_yaml(tdir / "lineage" / "catalog.yaml")
     reports = _read_yaml(tdir / "reports" / "production.yaml")
+    cost_control = _read_yaml(tdir / "cost-control" / "overview.yaml")
     return {
         "tenantId": tenant_id,
         "found": True,
@@ -66,5 +67,6 @@ def build_workspace(tenant_id: str) -> dict[str, Any]:
         "rules": rules,
         "lineage": lineage,
         "productionReports": reports,
+        "costControl": cost_control,
         "secretsConfigured": secrets_status(tenant_id),
     }

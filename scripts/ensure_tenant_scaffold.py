@@ -21,6 +21,7 @@ REQUIRED_DIRS = (
     "reports",
     "memory",
     "workflows",
+    "cost-control",
 )
 
 EMPTY_FIXES = {
@@ -45,6 +46,23 @@ EMPTY_REPORTS = {
     "tenant_id": "",
     "title": "Production reports",
     "checks": [],
+}
+
+EMPTY_COST_CONTROL = {
+    "tenant_id": "",
+    "title": "Cost Control",
+    "status": "placeholder",
+    "summary": (
+        "Placeholder for cloud spend visibility and reduction. "
+        "Connect Cost Explorer / CUR later."
+    ),
+    "metrics": {
+        "monthToDate": "—",
+        "savingsOpportunity": "—",
+        "anomalies": "—",
+        "budgetsConfigured": 0,
+    },
+    "focus_areas": [],
 }
 
 SECRETS_EXAMPLE = """# Copy to secrets.local.yaml (gitignored) and fill locally.
@@ -95,6 +113,16 @@ def ensure_tenant(tenant_dir: Path) -> list[str]:
         data = {**EMPTY_REPORTS, "tenant_id": tid, "title": f"{tid} production reports"}
         _write_yaml(reports, data)
         actions.append(f"{tid}: created reports/production.yaml")
+
+    cost = tenant_dir / "cost-control" / "overview.yaml"
+    if not cost.exists():
+        data = {
+            **EMPTY_COST_CONTROL,
+            "tenant_id": tid,
+            "title": f"{tid} Cost Control",
+        }
+        _write_yaml(cost, data)
+        actions.append(f"{tid}: created cost-control/overview.yaml")
 
     mem = tenant_dir / "memory" / ".gitkeep"
     if not mem.exists():

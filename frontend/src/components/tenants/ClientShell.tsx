@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   BarChart3,
   CheckSquare,
+  Coins,
   FileCode2,
   FlaskConical,
   GitBranch,
@@ -40,6 +41,7 @@ const NAV: NavItem[] = [
   },
   { href: "/lineage", label: "Lineage", icon: Network },
   { href: "/reports", label: "Reports", icon: BarChart3 },
+  { href: "/cost-control", label: "Cost Control", icon: Coins },
   { href: "/skills", label: "Skills", icon: Wrench },
   { href: "/rules", label: "Rules", icon: ScrollText },
 ];

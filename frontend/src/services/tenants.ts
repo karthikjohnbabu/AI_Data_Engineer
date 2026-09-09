@@ -318,6 +318,28 @@ export async function runWorkflowStage(
   });
 }
 
+export interface CostControlOverview {
+  tenantId: string;
+  title?: string;
+  status?: string;
+  summary?: string;
+  metrics?: {
+    monthToDate?: string;
+    savingsOpportunity?: string;
+    anomalies?: number | string;
+    budgetsConfigured?: number;
+  };
+  focusAreas?: { id: string; title: string; blurb: string }[];
+}
+
+export async function getTenantCostControl(
+  tenantId: string
+): Promise<CostControlOverview | null> {
+  return apiFetchSafe("/tenants/cost-control", null, {
+    headers: withTenant(tenantId),
+  });
+}
+
 export interface SkillPackInfo {
   id: string;
   path: string;

@@ -1,0 +1,24 @@
+tenant_id: betfred
+title: Betfred Cost Control
+status: placeholder
+summary: >
+  Placeholder FinOps view for UK Digital Glue, Iceberg, and Redshift spend.
+  Wire Cost Explorer / CUR and per-job metering later — no live cost data yet.
+metrics:
+  monthToDate: "—"
+  savingsOpportunity: "—"
+  anomalies: "—"
+  budgetsConfigured: 0
+focus_areas:
+  - id: glue
+    title: Glue / ETL spend
+    blurb: Worker hours, DPU spikes, idle interactive sessions.
+  - id: storage
+    title: Lake & warehouse storage
+    blurb: S3 growth, Iceberg snapshots, unused gold tables.
+  - id: compute
+    title: Query compute
+    blurb: Athena / Spectrum / Redshift utilisation windows.
+  - id: guardrails
+    title: Budget guardrails
+    blurb: Alerts and caps before month-end surprise bills.

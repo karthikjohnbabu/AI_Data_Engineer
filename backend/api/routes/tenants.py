@@ -472,3 +472,34 @@ async def tenant_skills_upload(
         "skills": ws.get("skills") or [],
         "message": f"Uploaded {result['count']} skill pack(s)",
     }
+
+
+@router.get("/tenants/cost-control")
+async def tenant_cost_control(
+    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
+    tenant_id: str | None = Query(default=None),
+):
+    """FinOps / Cost Control placeholder for this tenant."""
+    ctx = _resolve(x_tenant_id, tenant_id)
+    from tenants.workspace import build_workspace
+
+    ws = build_workspace(ctx.tenant_id)
+    raw = ws.get("costControl") or {}
+    return {
+        "tenantId": ctx.tenant_id,
+        "title": raw.get("title") or f"{ws.get('name') or ctx.tenant_id} Cost Control",
+        "status": raw.get("status") or "placeholder",
+        "summary": raw.get("summary")
+        or (
+            "Placeholder for cloud spend visibility and reduction. "
+            "Connect Cost Explorer / CUR and job-level metering later."
+        ),
+        "metrics": raw.get("metrics")
+        or {
+            "monthToDate": "—",
+            "savingsOpportunity": "—",
+            "anomalies": "—",
+            "budgetsConfigured": 0,
+        },
+        "focusAreas": raw.get("focus_areas") or raw.get("focusAreas") or [],
+    }

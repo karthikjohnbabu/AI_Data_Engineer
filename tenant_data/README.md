@@ -2,7 +2,9 @@
 
 Each customer (and Newton itself) is a **separate tenant directory**.
 **Portal features are the same for every tenant** (Overview, Tickets, Fixes /
-Checklist / Results, Lineage, Reports). **Skills and rules are tenant-specific.**
+Checklist / Results, Lineage, Reports, **Cost Control**, Skills, Rules).
+**Skills and rules are tenant-specific.** Cost Control starts as a FinOps
+placeholder (`cost-control/overview.yaml`) until billing feeds are wired.
 
 ```
 tenant_data/
@@ -14,6 +16,7 @@ tenant_data/
     fixes/                   # fix packs + catalog.yaml
     lineage/                 # catalog.yaml — graph for THIS tenant only
     reports/                 # production.yaml — prod reports for THIS tenant
+    cost-control/            # overview.yaml — FinOps / Cost Control placeholder
     memory/                  # tenant-scoped notes
     secrets.example.yaml     # key names only — committed
     secrets.local.yaml       # real creds — gitignored

@@ -1,0 +1,24 @@
+tenant_id: busybees
+title: Busy Bees Cost Control
+status: placeholder
+summary: >
+  Placeholder FinOps view for nursery analytics cloud spend (ingest, warehouse,
+  reporting). No live billing feed yet — slot reserved for budgets and savings.
+metrics:
+  monthToDate: "—"
+  savingsOpportunity: "—"
+  anomalies: "—"
+  budgetsConfigured: 0
+focus_areas:
+  - id: glue
+    title: Pipeline / ETL spend
+    blurb: Batch jobs and idle workers.
+  - id: storage
+    title: Storage growth
+    blurb: Attendance and occupancy lake tables.
+  - id: compute
+    title: Query compute
+    blurb: Reporting and ad-hoc warehouse use.
+  - id: guardrails
+    title: Budget guardrails
+    blurb: Soft alerts before hard month-end caps.

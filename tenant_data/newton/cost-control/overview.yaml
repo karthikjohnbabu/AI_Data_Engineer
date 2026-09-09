@@ -1,0 +1,24 @@
+tenant_id: newton
+title: Newton Cost Control
+status: placeholder
+summary: >
+  Placeholder for Newton platform cloud spend (API, hosting, LLM tokens later).
+  Not connected to billing yet.
+metrics:
+  monthToDate: "—"
+  savingsOpportunity: "—"
+  anomalies: "—"
+  budgetsConfigured: 0
+focus_areas:
+  - id: compute
+    title: App & API compute
+    blurb: Runtime and scale-out cost.
+  - id: llm
+    title: Model / LLM usage
+    blurb: Token spend when live providers are enabled.
+  - id: storage
+    title: Tenant data storage
+    blurb: Artefacts and logs growth.
+  - id: guardrails
+    title: Budget guardrails
+    blurb: Caps for sandbox vs production.
