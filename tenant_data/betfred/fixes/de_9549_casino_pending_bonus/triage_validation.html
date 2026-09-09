@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>DE-9549 — Big summary (triage validation)</title>
+<style>
+  :root {
+    --ink:#101828; --muted:#475467; --border:#d0d5dd; --bg:#f8fafc; --card:#fff;
+    --blue:#175cd3; --blue-bg:#eff8ff; --ok:#067647; --ok-bg:#ecfdf3;
+    --warn:#b54708; --warn-bg:#fffaeb; --bad:#b42318; --bad-bg:#fef3f2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Calibri,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.45}
+  .wrap{max-width:1040px;margin:0 auto;padding:24px 18px 80px}
+  h1{font-size:1.55rem;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:.92rem;margin:0 0 16px}
+  h2{font-size:1.14rem;margin:1.8rem 0 .55rem;padding-bottom:5px;border-bottom:2px solid var(--blue)}
+  h3{font-size:1rem;margin:1.1rem 0 .35rem;color:#344054}
+  h4{font-size:.92rem;margin:.85rem 0 .25rem}
+  p,li{font-size:.92rem;color:#344054}
+  .banner{background:var(--blue-bg);border:1px solid #b2ddff;border-left:5px solid var(--blue);border-radius:8px;padding:12px 14px;margin-bottom:14px}
+  .verdict{background:var(--ok-bg);border:1px solid #abefc6;border-left:5px solid var(--ok);border-radius:8px;padding:14px 16px;margin:12px 0 18px}
+  .box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin:10px 0}
+  .ok{background:var(--ok-bg);border-color:#abefc6}
+  .warn{background:var(--warn-bg);border-color:#fec84b}
+  .bad{background:var(--bad-bg);border-color:#fecdca}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;font-size:.8rem;margin:8px 0 14px;background:var(--card)}
+  th,td{border:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:#f2f4f7}
+  code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.84em}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700}
+  .pill-ok{background:#abefc6;color:#067647}
+  .pill-bad{background:#fecdca;color:#b42318}
+  .pill-warn{background:#fedf89;color:#b54708}
+  .pill-info{background:#b2ddff;color:#175cd3}
+  .toc a{color:var(--blue);text-decoration:none}
+  .toc li{margin:3px 0;font-size:.88rem}
+  .mermaid{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin:10px 0;overflow-x:auto}
+  pre.ascii,pre.sql{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:12px;font-size:.7rem;overflow-x:auto;line-height:1.35;white-space:pre}
+  .issue{border-left:4px solid var(--blue);padding:8px 12px;margin:12px 0;background:var(--card);border-radius:0 8px 8px 0;border:1px solid var(--border);border-left-width:4px}
+  .issue.crit{border-left-color:var(--bad)}
+  .issue.med{border-left-color:var(--warn)}
+  .issue.enh{border-left-color:var(--blue)}
+  .issue.extra{border-left-color:#7a5af8}
+  footer{margin-top:2rem;color:var(--muted);font-size:.8rem}
+  a{color:var(--blue)}
+  .muted{color:var(--muted);font-size:.85rem}
+</style>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({startOnLoad:true,theme:"neutral",securityLevel:"loose"});
+</script>
+</head>
+<body>
+<div class="wrap">
+
+<h1>DE-9549 — Big summary (triage validation)</h1>
+<p class="sub">
+  <strong>One-stop</strong> for this ticket (MD twin: triage_validation.md) ·
+  report pack is secondary ·
+  related <a href="https://betfred.atlassian.net/browse/DE-7392">DE-7392</a> ·
+  refreshed <strong>2026-09-08</strong>
+</p>
+
+<div class="banner">
+  <a href="https://betfred.atlassian.net/browse/DE-9549">DE-9549</a>
+  · Casino pending bonus ·
+  <span class="pill pill-warn">IN DEVELOPMENT</span>
+  · 5 Critical · 5 Medium · 3 Enhancements · extras X1–X7
+  <br/>
+  Also: amount_gbp.html (GBP vs EUR deep dive) ·
+  <a href="../../../validation/reports/de_9549_casino_pending_bonus/de_9549_final_verdict.html">final_verdict.html</a> (secondary)
+</div>
+
+<div class="verdict">
+  <strong>One-screen verdict:</strong>
+  SQL and AWS drink from <em>different taps</em> (CDC vs Playtech report) —
+  row counts will never match. Close on <strong>Alice</strong> intersection.
+  <br/><br/>
+  <strong>Ship now (Glue bug):</strong>
+  bonus_bk = <strong>template_code</strong> (mapping xlsx row 10: casino.Bonuses.code) + gold reload.
+  <br/><br/>
+  <strong>AmountGBP — ask Playtech first</strong> (mapping has no AmountGBP).
+  Option A: add field or IMS Currency feed.
+  Option B only if they say no: SGP sgp_currency + sgp_currency_exchange_rate (approximation).
+  <br/><br/>
+  Do <strong>not</strong> ship Option B as the default before the vendor answers.
+</div>
+
+<div class="box warn">
+  <strong>Missing-column ladder (AmountGBP):</strong>
+  (1) Exhausted mapping + Iceberg + legacy proc — not on DER/player-bonus.
+  (2) Ask <em>why</em> missing on API.
+  (3) Ask Playtech (Elena/Andrew): AmountGBP or IMS Currency + rate date (legacy Accept→Start).
+  (4) If no → Option B SGP FX.
+</div>
+
+<div class="box toc">
+  <strong>Jump</strong>
+  <ol>
+    <li><a href="#layman">Layman story</a></li>
+    <li><a href="#ship-board">What to ship vs leave</a></li>
+    <li><a href="#c1-deep">C1 amount_gbp deep dive (GBP + EUR)</a></li>
+    <li><a href="#live">Live examples</a></li>
+    <li><a href="#related">Related tickets / DE-7392 truth</a></li>
+    <li><a href="#board">Full issue board</a></li>
+    <li><a href="#cancannot">Can vs cannot</a></li>
+    <li><a href="#validation">Validation log</a></li>
+    <li><a href="#links">Links followed</a></li>
+    <li><a href="#close">How to close</a></li>
+  </ol>
+</div>
+
+<!-- LAYMAN -->
+<h2 id="layman">1. Explain like a layman</h2>
+<div class="box">
+  <p style="margin-top:0"><strong>What is it?</strong> One row per casino bonus <em>voucher</em>
+  (free spins, offers…): amount, dates, status, redeemed flag.</p>
+  <p><strong>Why the ticket?</strong> PBI needs it on AWS. Old warehouse has it on SQL.
+  Migration findings compare the two.</p>
+</div>
+<div class="grid2">
+  <div class="box">
+    <strong>Old fridge — SQL</strong>
+    <p>Casino / BetfredWorld via <strong>CDC</strong>. Waiting / shelf / cleanup too.
+    ~<strong>165.8M</strong> rows (2026-09-07).</p>
+  </div>
+  <div class="box">
+    <strong>New fridge — AWS</strong>
+    <p>Playtech <strong>till report</strong> only. ~<strong>312k</strong> unique pendings.</p>
+  </div>
+</div>
+<div class="box warn">
+  <strong>DE-7392 (Ehsan):</strong> BetfredWorld will <em>not</em> be CDC’d to AWS — IMS reports replace it.
+  Gap is by design.
+</div>
+<table>
+  <thead><tr><th>Person</th><th>Story</th><th>Action</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Alice</strong></td><td>On both (issued → redeemed)</td><td>Gate on her fields; fix bonus_bk + amount_gbp</td></tr>
+    <tr><td><strong>Bob</strong></td><td>SQL only (waiting / shelf)</td><td>Document — never “fix” in Glue</td></tr>
+    <tr><td><strong>Carol</strong></td><td>Both sides; AWS money = 0 today</td><td>Heal with GBP/EUR rules + reload</td></tr>
+  </tbody>
+</table>
+<div class="mermaid">
+flowchart LR
+  subgraph OLD["SQL fridge"]
+    CDC[Casino CDC] --> SQL[~165M]
+  end
+  subgraph NEW["AWS fridge"]
+    API[Till report] --> ICE[Iceberg]
+    ICE --> G[Glue]
+    G --> RS[~312k]
+  end
+  SQL -.->|"Alice"| RS
+  SQL -.->|"Bob never arrives"| NEW
+</div>
+
+<!-- SHIP BOARD -->
+<h2 id="ship-board">2. What to ship vs leave (don’t take for granted)</h2>
+<table>
+  <thead><tr><th>Item</th><th>Status</th><th>Action</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>bonus_bk</code> = <code>template_code</code></td>
+      <td><span class="pill pill-bad">OPEN</span></td>
+      <td>Ship line 96 + <strong>reload</strong>. Tip≠gold until reload.</td>
+    </tr>
+    <tr>
+      <td><code>amount_gbp</code> GBP + EUR</td>
+      <td><span class="pill pill-warn">OPEN — standup</span></td>
+      <td>GBP→amount; EUR→FX; need rate date; reload</td>
+    </tr>
+    <tr>
+      <td><code>player_bk</code> crosswalk</td>
+      <td><span class="pill pill-warn">FOLLOW-UP</span></td>
+      <td>Not a one-liner</td>
+    </tr>
+    <tr>
+      <td>UTC dates / NULL preserve / LEFT JOIN</td>
+      <td><span class="pill pill-ok">IN TIP</span></td>
+      <td>Verify after reload — don’t assume old gold healed</td>
+    </tr>
+    <tr>
+      <td>Population gap / status-type / wagering</td>
+      <td><span class="pill pill-info">ACCEPT / EXCLUDE</span></td>
+      <td>Not Glue “fix”</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- C1 DEEP -->
+<h2 id="c1-deep">3. C1 <code>amount_gbp</code> — in-depth (updated)</h2>
+<div class="issue crit">
+  <h4>Feed has only two currencies</h4>
+  <table>
+    <thead><tr><th>currency_code</th><th>Tip rows</th><th>Rule</th></tr></thead>
+    <tbody>
+      <tr><td><strong>GBP</strong></td><td>311,372 (~99.8%)</td><td><code>amount_gbp = amount</code> — no FX</td></tr>
+      <tr><td><strong>EUR</strong></td><td>750 (~0.2%)</td><td><code>amount × mult / div</code> via FX tables</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Do not</strong> copy <code>amount</code> for every row — that makes EUR look like pounds.</p>
+
+  <h4>Why zeros today?</h4>
+  <p>Glue: <code>CAST(0 AS …) AS amount_gbp</code>. Not because Iceberg amount is empty
+  (1.11M actions, 0 null amount).</p>
+
+  <h4>What DE-7392 actually said</h4>
+  <ul>
+    <li>Target DDL includes <code>AmountGBP</code></li>
+    <li>Sowmiya mapped <code>a.amount</code> → <strong>both</strong> Amount and AmountGBP</li>
+    <li>Mark “always zero since 21 Aug 2025” was about <strong>BonusWagering</strong>, not AmountGBP</li>
+  </ul>
+  <p class="muted">So “DE-7392 stub for AmountGBP” was a loose label — job hardcode ≠ clear ticket instruction to leave GBP at 0.</p>
+
+  <h4>Test SQL Amount vs AmountGBP (full dim, 2026-09-07)</h4>
+  <table>
+    <thead><tr><th>Check</th><th>Rows</th></tr></thead>
+    <tbody>
+      <tr><td>Total</td><td>165,777,439</td></tr>
+      <tr><td>Amount = AmountGBP</td><td>157,663,508 (~95%)</td></tr>
+      <tr><td>Among AmountGBP ≠ 0: equal Amount</td><td>42,586,663 (<strong>99.05%</strong>)</td></tr>
+      <tr><td>Among AmountGBP ≠ 0: true FX differ</td><td>409,907 (0.95%, ratios ~0.86)</td></tr>
+      <tr><td>Amount &gt; 0 but AmountGBP = 0</td><td>7,704,024 (SQL also zeros sometimes)</td></tr>
+    </tbody>
+  </table>
+  <p>Supports: GBP → copy; EUR → convert.</p>
+
+  <h4>FX join requirements (EUR)</h4>
+  <table>
+    <thead><tr><th>Need</th><th>Source</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>amount + currency_code</td><td>actions</td><td><span class="pill pill-ok">HAVE</span></td></tr>
+      <tr><td>Code → BK</td><td><code>sgp_currency</code> (EUR=2, GBP=4)</td><td><span class="pill pill-ok">HAVE</span></td></tr>
+      <tr><td>Daily rate</td><td><code>sgp_currency_exchange_rate</code></td><td><span class="pill pill-ok">HAVE</span></td></tr>
+      <tr><td>Rate date</td><td>action vs start vs accept</td><td><span class="pill pill-warn">NATHAN</span></td></tr>
+      <tr><td>Join type</td><td>LEFT JOIN only</td><td>Missing rate → NULL, not delete</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Proposed Glue expression</h4>
+  <pre class="sql">LEFT JOIN sgp_currency ccy
+  ON UPPER(TRIM(ccy.isocode)) = UPPER(TRIM(a.currency_code))
+LEFT JOIN sgp_currency_exchange_rate fx
+  ON fx.currency_bkfrom = ccy.currency_bk
+ AND fx.currency_bkto = 4
+ AND fx.date = CAST(a.action_date AS DATE)   -- or bonus_start_date
+
+CASE
+  WHEN UPPER(TRIM(a.currency_code)) = 'GBP'
+    THEN CAST(a.amount AS DECIMAL(19, 8))
+  WHEN fx.divisor IS NOT NULL AND fx.divisor &lt;&gt; 0
+    THEN CAST(a.amount * fx.multiplier / fx.divisor AS DECIMAL(19, 8))
+  ELSE NULL
+END AS amount_gbp</pre>
+
+  <div class="mermaid">
+flowchart TB
+  SRC["actions: amount + currency_code"] --> BR{"currency_code?"}
+  BR -->|GBP| G["amount_gbp = amount"]
+  BR -->|EUR| E["sgp_currency EUR→2"]
+  E --> FX["sgp_currency_exchange_rate 2→4 on rate date"]
+  FX --> OUT["amount × mult / div"]
+  G --> GOLD["Redshift amount_gbp"]
+  OUT --> GOLD
+  </div>
+</div>
+
+<!-- LIVE -->
+<h2 id="live">4. Live examples (today vs after fix)</h2>
+<div class="grid2">
+  <div class="box ok">
+    <h4 style="margin-top:0">GBP — pending <code>3998550691</code></h4>
+    <table>
+      <tr><th>Place</th><th>amount</th><th>amount_gbp</th></tr>
+      <tr><td>Iceberg</td><td>1.00 GBP</td><td><em>n/a</em></td></tr>
+      <tr><td>Today RS</td><td>1.00</td><td><strong>0</strong></td></tr>
+      <tr><td>After fix</td><td>1.00</td><td><strong>1.00</strong></td></tr>
+    </table>
+    <p class="muted">Tables: actions only. No FX join.</p>
+  </div>
+  <div class="box">
+    <h4 style="margin-top:0">EUR — pending <code>3998057901</code></h4>
+    <table>
+      <tr><th>Place</th><th>amount</th><th>amount_gbp</th></tr>
+      <tr><td>Iceberg</td><td>1.00 EUR</td><td><em>n/a</em></td></tr>
+      <tr><td>Today RS</td><td>1.00</td><td><strong>0</strong></td></tr>
+      <tr><td>After (start 2025-11-26)</td><td>1.00</td><td><strong>0.8788</strong></td></tr>
+      <tr><td>After (action 2026-09-06)</td><td>1.00</td><td><strong>0.85898</strong></td></tr>
+      <tr><td>Test SQL</td><td>1.00</td><td><strong>0.8591</strong> ≈ action</td></tr>
+    </table>
+    <p class="muted">Tables: actions → sgp_currency → sgp_currency_exchange_rate.</p>
+  </div>
+</div>
+<pre class="ascii">GBP path:  actions ──────────────────────────► amount_gbp = amount
+
+EUR path:  actions ─► sgp_currency (2/4) ─► sgp_currency_exchange_rate
+                                              date = action|start
+                                         ─► amount_gbp = amount * mult / div
+
+TODAY both paths: amount_gbp = 0
+</pre>
+
+<!-- RELATED -->
+<h2 id="related">5. Related tickets / DE-7392</h2>
+<table>
+  <thead><tr><th>Ticket</th><th>Status</th><th>Role</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><a href="https://betfred.atlassian.net/browse/DE-7392">DE-7392</a></td>
+      <td><span class="pill pill-ok">Done</span></td>
+      <td>IMS path stood up. Mark: BonusWagering always 0. AmountGBP in DDL; Sowmiya mapped to a.amount.</td>
+    </tr>
+    <tr>
+      <td><a href="https://betfred.atlassian.net/browse/DE-9549">DE-9549</a></td>
+      <td><span class="pill pill-warn">IN DEV</span></td>
+      <td>Migration findings + bonus_bk bug + amount_gbp customer gap.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Mark once said BonusBK=<code>a.code</code> — <strong>superseded</strong> by his Excel Template code + Athena (0/312k code=template).</p>
+
+<!-- BOARD -->
+<h2 id="board">6. Full issue board</h2>
+
+<h3>Critical</h3>
+<div class="issue crit">
+  <h4>C1 — amount_gbp = 0 <span class="pill pill-warn">ASK PLAYTECH FIRST</span></h4>
+  <p>Mapping xlsx has <strong>no AmountGBP</strong>. Ladder: exhaust → ask why →
+  ask Playtech (add field / IMS Currency) → Option B SGP FX only if no.
+  Legacy used Casino.ExchangeRate (Accept→Start), not SGP.</p>
+  <p>See §3. Prod gold 312,122/312,122 zeros. Customer-wrong as-is.</p>
+</div>
+<div class="issue crit">
+  <h4>C2 — bonus_wagering = 0 <span class="pill pill-info">ACCEPT / EXCLUDE</span></h4>
+  <p>Mark: zero since 21 Aug 2025. No feed field. Exclude from PBI until source exists.</p>
+</div>
+<div class="issue crit">
+  <h4>C3 — message_id = bonus_name <span class="pill pill-ok">ACCEPTED</span></h4>
+  <p>Same as legacy. No change.</p>
+</div>
+<div class="issue crit">
+  <h4>C4 — UTC → UK <span class="pill pill-ok">IN TIP</span></h4>
+  <p><code>FROM_UTC_TIMESTAMP(..., 'Europe/London')</code>. Verify after reload.</p>
+</div>
+<div class="issue crit">
+  <h4>C5 — Watermark both tables <span class="pill pill-ok">IN TIP</span></h4>
+  <p><code>a.ds_tsprocessed OR b.ds_tsprocessed</code>.</p>
+</div>
+
+<h3>Medium</h3>
+<div class="issue med">
+  <h4>M1 admin NULL→-1 <span class="pill pill-ok">FIXED</span></h4>
+  <p>Aug ∩ 100% on bonus_admin_code.</p>
+</div>
+<div class="issue med">
+  <h4>M2 free spins NULL→0 <span class="pill pill-ok">FIXED</span></h4>
+  <p>Aug ∩ ~93%.</p>
+</div>
+<div class="issue med">
+  <h4>M3 redeemed from date <span class="pill pill-ok">ACCEPTED</span></h4>
+  <p>Nathan/Andrew OK. Aug ∩ ~95.7%.</p>
+</div>
+<div class="issue med">
+  <h4>M4 no IDENTITY surrogates <span class="pill pill-ok">ACCEPTED</span></h4>
+  <p>Use business codes.</p>
+</div>
+<div class="issue med">
+  <h4>M5 DLM semantics <span class="pill pill-warn">EXCLUDE</span></h4>
+  <p>Prefer start_date windows (Aug DLM bulk stamp).</p>
+</div>
+
+<h3>Enhancements</h3>
+<div class="issue enh"><p>E1–E3 (ROW_NUMBER, DynamoDB, hash) — <span class="pill pill-ok">in tip</span></p></div>
+
+<h3>Extras</h3>
+<div class="issue extra">
+  <h4>X1 Bob gap <span class="pill pill-info">BY DESIGN</span></h4>
+  <p>Cannot Glue-fix. Close on Alice.</p>
+</div>
+<div class="issue extra">
+  <h4>X2 LEFT JOIN <span class="pill pill-ok">FIXED</span></h4>
+  <p>PR #716 era.</p>
+</div>
+<div class="issue extra">
+  <h4>X3 API health <span class="pill pill-ok">LIVE</span></h4>
+  <p>2026-09-07: max ds_tsprocessed 00:48 UTC; 1.11M actions.</p>
+</div>
+<div class="issue extra">
+  <h4>X4 status/type vocab <span class="pill pill-warn">EXCLUDE</span></h4>
+  <p>~0% match. Map later.</p>
+</div>
+<div class="issue extra">
+  <h4>X5 bonus_bk <span class="pill pill-bad">SHIP</span></h4>
+  <p><code>a.template_code AS bonus_bk</code>. Athena 0/312k code=template.
+  Example 3998550691: today 553502466 → after 44531.</p>
+</div>
+<div class="issue extra">
+  <h4>X6 player_bk <span class="pill pill-warn">FOLLOW-UP</span></h4>
+  <p>Playtech player_code ≠ CasinoPlayerID.</p>
+</div>
+<div class="issue extra">
+  <h4>X7 wild start_date on some ∩ <span class="pill pill-warn">WATCH</span></h4>
+  <p>Re-check after template_code + start_date window.</p>
+</div>
+
+<!-- CAN -->
+<h2 id="cancannot">7. Can vs cannot</h2>
+<table>
+  <thead><tr><th>Goal</th><th>Can?</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>AWS count = SQL</td><td><span class="pill pill-bad">NO</span></td><td>Different pipes</td></tr>
+    <tr><td>amount_gbp GBP copy + EUR FX</td><td><span class="pill pill-ok">YES</span></td><td>Need rate date + reload</td></tr>
+    <tr><td>bonus_wagering real</td><td><span class="pill pill-bad">NOT NOW</span></td><td>No feed</td></tr>
+    <tr><td>bonus_bk = template_code</td><td><span class="pill pill-ok">YES — NEXT</span></td><td>+ reload</td></tr>
+    <tr><td>UK dates / NULL / LEFT JOIN</td><td><span class="pill pill-ok">IN TIP</span></td><td>Verify post-reload</td></tr>
+    <tr><td>status/type match</td><td><span class="pill pill-warn">MAP/EXCLUDE</span></td><td>—</td></tr>
+    <tr><td>player ids</td><td><span class="pill pill-warn">FOLLOW-UP</span></td><td>Crosswalk</td></tr>
+  </tbody>
+</table>
+
+<!-- VALIDATION -->
+<h2 id="validation">8. Validation log</h2>
+<table>
+  <thead><tr><th>Check</th><th>Result</th><th>When</th></tr></thead>
+  <tbody>
+    <tr><td>Aug DLM compare</td><td>SQL 1.49M · RS 295k · ∩ 57k · 0 full match</td><td>2026-09-03</td></tr>
+    <tr><td>Alice fields ∩</td><td>amount 95.5% · redeemed 95.7% · admin 100% · free spins 93%</td><td>2026-09-03</td></tr>
+    <tr><td>API freshness</td><td>max 2026-09-07 00:48 UTC · 1,109,827 actions · 312,122 pendings</td><td>2026-09-07</td></tr>
+    <tr><td>Prod amount_gbp / wagering</td><td>312122/312122 = 0</td><td>2026-09-07</td></tr>
+    <tr><td>Tip currency mix</td><td>GBP 311,372 · EUR 750</td><td>2026-09-07</td></tr>
+    <tr><td>EUR FX tip join</td><td>750/750 on start &amp; action dates</td><td>2026-09-07</td></tr>
+    <tr><td>code vs template_code</td><td>0 equal / 312,122</td><td>2026-09-07</td></tr>
+    <tr><td>Test SQL Amount vs AmountGBP</td><td>99.05% equal when GBP≠0; 409,907 true FX</td><td>2026-09-07</td></tr>
+    <tr><td>Live EUR SQL vs Iceberg rate</td><td>3998057901 AmountGBP 0.8591 ≈ action 0.85898</td><td>2026-09-07</td></tr>
+  </tbody>
+</table>
+
+<!-- LINKS -->
+<h2 id="links">9. Links followed</h2>
+<table>
+  <thead><tr><th>Link</th><th>Outcome</th></tr></thead>
+  <tbody>
+    <tr><td>Report export API</td><td>Live DER_Bonus_Actions</td></tr>
+    <tr><td>Report Viewer UI</td><td>AAS optional — skip</td></tr>
+    <tr><td>DE-7392 / DE-9549</td><td>Read; AmountGBP vs BonusWagering clarified</td></tr>
+    <tr><td>DSR mapping xlsx</td><td>Template code = Bonuses.code (row 10, was hidden); <strong>no AmountGBP</strong></td></tr>
+    <tr><td>betfred_reports_curls xlsx</td><td>Report IDs; no AmountGBP</td></tr>
+    <tr><td>Legacy transform_2 pendingbonus</td><td>AmountGBP via Casino.ExchangeRate / IMSCurrency</td></tr>
+    <tr><td>amount_gbp.html</td><td>GBP/EUR live walkthrough (Option B design aid)</td></tr>
+  </tbody>
+</table>
+
+<!-- CLOSE -->
+<h2 id="close">10. How to close + next</h2>
+<div class="box ok">
+  <ol>
+    <li>Ship Glue: <strong>template_code</strong> → bonus_bk + gold reload.</li>
+    <li>Elena/Andrew → Playtech: AmountGBP / IMS Currency / rate date (attach mapping xlsx).</li>
+    <li>Only after Playtech: Option A or Option B SGP FX; DEV + reload.</li>
+    <li>Re-compare Alice (start_date / Iceberg keys); exclude wagering/status/type/DLM.</li>
+    <li>Document Bob + player_bk follow-up.</li>
+    <li>Jira Post-deploy: test SQL → prod RS + BK overlap.</li>
+  </ol>
+</div>
+<div class="box warn">
+  <strong>Do not</strong> Done on Aug DLM full-count FAIL, claim tip fixes healed prod without reload,
+  or ship SGP FX as default before Playtech answers.
+</div>
+
+<footer>
+  Primary big summary · mirrors triage_validation.md · DE-9549 · refreshed 2026-09-07 afternoon ·
+  deep dive also in amount_gbp.html
+</footer>
+
+</div>
+</body>
+</html>

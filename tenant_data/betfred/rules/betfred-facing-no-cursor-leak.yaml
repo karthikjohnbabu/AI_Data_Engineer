@@ -1,0 +1,8 @@
+id: betfred-facing-no-cursor-leak
+name: ">- HARD RULE — never write Cursor/.cursor/Cursor paths or the word Cursor in Betfred git repos, Jira, PRs, or team chat;"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: ">- HARD RULE — never write Cursor/.cursor/Cursor paths or the word Cursor in Betfred git repos, Jira, PRs, or team chat;"
+guidance_file: guidance/betfred-facing-no-cursor-leak.md

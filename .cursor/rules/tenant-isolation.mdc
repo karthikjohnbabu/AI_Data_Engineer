@@ -1,0 +1,39 @@
+---
+description: >-
+  Tenant isolation for Newton: skills, rules, secrets, lineage, and reports
+  stay per tenant; future MySQL is tenant-wise; never mix Newton and customer creds
+alwaysApply: true
+---
+
+# Tenant isolation (HARD RULE)
+
+Newton is multi-tenant. Every request, skill, rule, secret, lineage graph, and production report belongs to **one** `tenant_id`.
+
+## Tenants
+
+| tenant_id | Stores | Credentials |
+|-----------|--------|-------------|
+| `newton` | Newton product (this repo, platform skills, Infominds IAM user `newton`) | `tenant_data/newton/secrets.local.yaml` or Newton `.env` AWS |
+| `betfred` | Betfred **skills and rules** only (no warehouse dumps) | `tenant_data/betfred/secrets.local.yaml` for frontend phase tests |
+| `busybees` | BusyBees skills/rules | that tenant's secrets file |
+| other | that customer's pack | that tenant's secrets file |
+
+## Do
+
+1. Set tenant from `X-Tenant-Id` (UI tenant switcher) before AWS / Jira / git / SQL.
+2. Load secrets only from `tenant_data/<tenant_id>/secrets.local.yaml`.
+3. Keep skills/rules under `tenant_data/<tenant_id>/{skills,rules}/`.
+4. Keep lineage and production reports under that tenant's `lineage/` and `reports/`.
+5. When MySQL exists: `tenant_id` on every row; filter every query; see `tenant_data/_schema/mysql_plan.md`.
+
+## Do not
+
+- Use Betfred SSO / SQL / Redshift while tenant is `newton`.
+- Use Infominds IAM `newton` while tenant is `betfred` (or any customer).
+- Commit `secrets.local.yaml`.
+- Import warehouse extracts, ticket CSVs, or player keys into `tenant_data`.
+- Fall back to another tenant's keys when the current tenant file is empty.
+
+## Frontend phases
+
+The dashboard tenant switcher + phase checklist call `/api/tenants/workflows/run-stage` with `X-Tenant-Id`. Do not ask the user to retype creds; they live in that tenant's gitignored secrets file.

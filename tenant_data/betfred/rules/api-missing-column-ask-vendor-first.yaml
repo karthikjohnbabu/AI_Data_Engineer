@@ -1,0 +1,8 @@
+id: api-missing-column-ask-vendor-first
+name: ">- API/report dims — missing columns (e.g. AmountGBP): exhaust mapping + Jira links first, ask vendor/API owner before O"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: ">- API/report dims — missing columns (e.g. AmountGBP): exhaust mapping + Jira links first, ask vendor/API owner before O"
+guidance_file: guidance/api-missing-column-ask-vendor-first.md

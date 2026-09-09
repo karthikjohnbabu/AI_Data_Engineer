@@ -1,0 +1,12 @@
+id: standup
+name: "standup"
+version: 1.0.0
+description: ">- Produce a short daily standup status for Prasath (yesterday / today / blockers) from active dimension tickets, DEV/PR state, and Cursor fixes. Use when the user asks for standup, status update for standup, or when the daily 9am standup loop fires."
+triggers:
+  tenant:
+    - betfred
+capabilities:
+  - tenant_skill
+risk: medium
+handler:
+  module: SKILL.md

@@ -1,0 +1,66 @@
+tenant_id: betfred
+note: Power BI workspaces and production validation health for Betfred.
+powerbi:
+  - id: uk_digital_player_overview
+    name: UK Digital · Player overview
+    workspace: Betfred Analytics
+    dataset: uk_digital_gold
+    type: dashboard
+    status: published
+    owner: BI Centre
+    description: Player KPIs, deposit limits, session health from gold dims.
+    pages:
+      - Players
+      - Deposit limits
+      - Sessions
+  - id: uk_digital_vip_hospitality
+    name: UK Digital · VIP hospitality
+    workspace: Betfred Analytics
+    dataset: uk_digital_gold
+    type: report
+    status: published
+    owner: VIP Ops
+    description: Costing vs player from vip_hospitality_costing + player.
+    pages:
+      - Costing
+      - By account
+  - id: migration_parity_board
+    name: Migration parity board
+    workspace: Data Platform
+    dataset: migration_checks
+    type: report
+    status: draft
+    owner: Data Engineering
+    description: Dimension BK overlap and validation windows for DE tickets.
+    pages:
+      - By ticket
+      - Trends
+windows:
+  - id: 2026-08
+    label: August 2026
+    status: reviewed
+  - id: 2026-09
+    label: September 2026
+    status: open
+checks:
+  - id: dim_deposit_limit_history
+    name: deposit_limit_history BK overlap
+    status: pass
+    ticket: DE-9556
+  - id: dim_session_history
+    name: session_history prod validation
+    status: pass
+    ticket: DE-9567
+  - id: dim_vip_hospitality
+    name: vip_hospitality_costing prod validation
+    status: pass
+    ticket: DE-9570
+  - id: dim_casino_pending_bonus
+    name: casino_pending_bonus DEV overlap
+    status: in_progress
+    ticket: DE-9549
+  - id: dim_cash_balance_historic
+    name: cash_balance historic solution gate
+    status: blocked
+    ticket: DE-9654
+last_run: "2026-09-09T18:00:00Z"

@@ -1,0 +1,8 @@
+id: dimension-validation-reports
+name: "Dimension report pack — final_verdict.html + validation/reports layout for every DE-*"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: "Dimension report pack — final_verdict.html + validation/reports layout for every DE-*"
+guidance_file: guidance/dimension-validation-reports.md

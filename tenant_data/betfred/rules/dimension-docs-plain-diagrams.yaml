@@ -1,0 +1,8 @@
+id: dimension-docs-plain-diagrams
+name: "Dimension docs — layman picture, source-pipe analysis, clear examples, E2E joins"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: "Dimension docs — layman picture, source-pipe analysis, clear examples, E2E joins"
+guidance_file: guidance/dimension-docs-plain-diagrams.md

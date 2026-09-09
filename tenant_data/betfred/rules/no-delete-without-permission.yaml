@@ -1,0 +1,8 @@
+id: no-delete-without-permission
+name: ">- Never delete files/folders without explicit user permission in the same message; prefer leave/archive over wipe"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: true
+  message: ">- Never delete files/folders without explicit user permission in the same message; prefer leave/archive over wipe"
+guidance_file: guidance/no-delete-without-permission.md

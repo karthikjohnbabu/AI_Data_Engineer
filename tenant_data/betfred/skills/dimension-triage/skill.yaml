@@ -1,0 +1,12 @@
+id: dimension-triage
+name: "dimension-triage"
+version: 1.0.0
+description: ">- Triage / ground work for Betfred dimension migration Jira tickets: read ticket + comments, follow every pasted URL/API/Bitbucket/attachment/mapping xlsx, audit related Done/Closed tickets, missing API-column ladder (ask vendor before Option B), layman source-pipe analysis, triage_validation.md+.html as one-stop, classify (incl. source-system-gap), recommend fix vs needs more info. Use when the "
+triggers:
+  tenant:
+    - betfred
+capabilities:
+  - tenant_skill
+risk: medium
+handler:
+  module: SKILL.md

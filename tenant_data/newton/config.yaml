@@ -25,6 +25,9 @@ rules:
   enforce_prod_destructive_guard: true
 memory:
   backend: sqlite
+storage:
+  backend: filesystem
+  mysql_database: newton
 security:
   require_human_approval_for:
     - prod_deploy

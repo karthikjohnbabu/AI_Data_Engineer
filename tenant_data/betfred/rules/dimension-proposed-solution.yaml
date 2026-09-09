@@ -1,0 +1,8 @@
+id: dimension-proposed-solution
+name: ">- proposed_solution: Plan→Execute; verify AWS live (never “if missing”); multi-window = DynamoDB work-queue + SFN; no s"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: ">- proposed_solution: Plan→Execute; verify AWS live (never “if missing”); multi-window = DynamoDB work-queue + SFN; no s"
+guidance_file: guidance/dimension-proposed-solution.md

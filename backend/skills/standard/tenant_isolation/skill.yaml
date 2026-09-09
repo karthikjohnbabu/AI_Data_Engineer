@@ -1,0 +1,13 @@
+id: tenant-isolation
+name: Tenant isolation
+version: 1.0.0
+description: Enforce per-tenant skills, rules, secrets, lineage, and reports. Filesystem now; MySQL later with tenant_id on every row.
+triggers:
+  always: true
+capabilities:
+  - isolate_tenant
+  - load_tenant_secrets
+  - load_tenant_skills
+risk: high
+handler:
+  module: handler.py

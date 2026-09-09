@@ -1,0 +1,8 @@
+id: legacy-parity-verification
+name: ">- Legacy Glue vs SQL Server parity verification: re-implement don't eyeball, surrogate vs BK literals, empty-table gree"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: ">- Legacy Glue vs SQL Server parity verification: re-implement don't eyeball, surrogate vs BK literals, empty-table gree"
+guidance_file: guidance/legacy-parity-verification.md

@@ -1,0 +1,12 @@
+id: dimension-fix
+name: "dimension-fix"
+version: 1.0.0
+description: ">- Implement dimension migration fixes from dimensions/de_{jira}_{name}.md: inspect redshift_sync and related Glue/SQL, write proposed fixes only under fixes/{name}/, never edit production SQL directly, handle status-overwrite by not joining only on current status, and commit on branch cursor/dimension-{name}-fix-22ba. Use when the user asks to fix a dimension issue after triage, implement a timeo"
+triggers:
+  tenant:
+    - betfred
+capabilities:
+  - tenant_skill
+risk: medium
+handler:
+  module: SKILL.md

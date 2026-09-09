@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, LayoutDashboard } from "lucide-react";
+import { TenantSwitcher } from "@/components/common/TenantSwitcher";
 
 const LABELS: Record<string, string> = {
   "/": "Dashboard",
@@ -17,6 +18,7 @@ const LABELS: Record<string, string> = {
   "/skills": "Skills",
   "/memory": "Memory",
   "/reports": "Reports",
+  "/lineage": "Lineage",
   "/integrations": "Integrations",
   "/settings": "Settings",
   "/onboarding": "Project Setup",
@@ -66,6 +68,7 @@ export function AppTopBar() {
         <span className="mx-1.5 text-slate-600">/</span>
         <span className="text-slate-300">{label}</span>
       </p>
+      <TenantSwitcher />
     </div>
   );
 }

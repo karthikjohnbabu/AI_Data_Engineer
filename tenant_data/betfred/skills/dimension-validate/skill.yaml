@@ -1,0 +1,12 @@
+id: dimension-validate
+name: "dimension-validate"
+version: 1.0.0
+description: ">- Validate dimension migration fixes: read dimensions/de_{jira}_{name}.md plus fixes/{name}/, support 1-day / 1-week / 1-month windows, run compare.py with the right gate (incl. source-system-gap = BK intersection not full counts), calculate match rate, document business justification for any delta, and write a report under validation/reports/. Use when the user asks to validate a dimension fix, "
+triggers:
+  tenant:
+    - betfred
+capabilities:
+  - tenant_skill
+risk: medium
+handler:
+  module: SKILL.md

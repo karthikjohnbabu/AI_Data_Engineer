@@ -1,0 +1,8 @@
+id: jira-related-ticket-verify
+name: "Question closed/related Jira tickets — verify claims before treating as settled"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: "Question closed/related Jira tickets — verify claims before treating as settled"
+guidance_file: guidance/jira-related-ticket-verify.md

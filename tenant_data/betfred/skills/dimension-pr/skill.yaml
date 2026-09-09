@@ -1,0 +1,12 @@
+id: dimension-pr
+name: "dimension-pr"
+version: 1.0.0
+description: ">- Draft the final Bitbucket PR description as markdown under fixes/{dim}/pr.md for manual copy-paste into the Glue repo GUI. Includes Jira migration findings by severity (Critical, Medium, Enhancement). Use when the user says create a PR or draft PR text for a dimension fix."
+triggers:
+  tenant:
+    - betfred
+capabilities:
+  - tenant_skill
+risk: medium
+handler:
+  module: SKILL.md

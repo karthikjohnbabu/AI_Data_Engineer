@@ -1,0 +1,23 @@
+tenant_id: busybees
+note: Sample BusyBees fix packs for the client portal demo.
+fixes:
+  - id: bb_101_attendance_facts
+    jira: BB-101
+    dimension: attendance facts
+    dimension_key: attendance_facts
+    status: done
+    pipeline_stage: closed
+    has_proposed_solution: true
+    has_triage: true
+    path: fixes/bb_101_attendance_facts
+    artefacts: [README.md, triage_validation.md, proposed_solution.html, final_prod_results.md]
+  - id: bb_118_room_occupancy
+    jira: BB-118
+    dimension: room occupancy
+    dimension_key: room_occupancy
+    status: in_progress
+    pipeline_stage: solution
+    has_proposed_solution: true
+    has_triage: true
+    path: fixes/bb_118_room_occupancy
+    artefacts: [README.md, triage_validation.md, proposed_solution.html, delivery_checklist.md]

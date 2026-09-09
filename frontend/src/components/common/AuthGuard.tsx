@@ -4,7 +4,16 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getAuthStatus } from "@/services/auth";
 import { getOnboarding } from "@/services/platform";
-import { getApiKey } from "@/utils/auth";
+import { ensureApiKeyBootstrapped, getApiKey } from "@/utils/auth";
+
+function isPortalPath(pathname: string): boolean {
+  return (
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/") ||
+    pathname.startsWith("/tenants/") ||
+    pathname.startsWith("/client/")
+  );
+}
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -17,13 +26,25 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         setReady(true);
         return;
       }
+      ensureApiKeyBootstrapped();
       try {
         const status = await getAuthStatus();
         if (status.authRequired && !getApiKey()) {
           router.replace("/login");
           return;
         }
+        if (isPortalPath(pathname)) {
+          setReady(true);
+          return;
+        }
+        // Local demo: API key from NEXT_PUBLIC_API_KEY — skip onboarding gate
+        // so Admin / tenant menu links stay reachable on home.
+        const localDemoKey = Boolean(process.env.NEXT_PUBLIC_API_KEY);
         if (pathname === "/onboarding") {
+          if (localDemoKey) {
+            router.replace("/");
+            return;
+          }
           const onboarding = await getOnboarding();
           if (onboarding.onboarded) {
             router.replace("/");
@@ -32,7 +53,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           setReady(true);
           return;
         }
-        if (pathname !== "/login") {
+        if (pathname !== "/login" && !localDemoKey) {
           const onboarding = await getOnboarding();
           if (!onboarding.onboarded) {
             router.replace("/onboarding");

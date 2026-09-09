@@ -1,0 +1,16 @@
+tenant_id: example_customer
+note: Sample Power BI stubs for the example tenant.
+powerbi:
+  - id: example_ops_dashboard
+    name: Example ops dashboard
+    workspace: Example BI
+    dataset: example_gold
+    type: dashboard
+    status: draft
+    owner: Demo
+    description: Placeholder Power BI report for the sample tenant.
+    pages:
+      - Overview
+windows: []
+checks: []
+last_run: null

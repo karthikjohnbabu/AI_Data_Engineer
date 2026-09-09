@@ -1,0 +1,8 @@
+id: no-jira-create
+name: ">- HARD RULE — never create Jira issues via API/MCP unless the user explicitly asks to create a ticket in the same messa"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: ">- HARD RULE — never create Jira issues via API/MCP unless the user explicitly asks to create a ticket in the same messa"
+guidance_file: guidance/no-jira-create.md

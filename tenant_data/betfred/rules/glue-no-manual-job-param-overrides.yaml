@@ -1,0 +1,8 @@
+id: glue-no-manual-job-param-overrides
+name: "Never manually override Glue job default parameters when starting runs"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: "Never manually override Glue job default parameters when starting runs"
+guidance_file: guidance/glue-no-manual-job-param-overrides.md

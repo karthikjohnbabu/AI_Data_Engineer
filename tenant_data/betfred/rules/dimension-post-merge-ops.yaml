@@ -1,0 +1,8 @@
+id: dimension-post-merge-ops
+name: ">- Standard Post-merge ops block for dimension PRs and prod reload — DROP only (no backup), Glue ≥2×, prod compare (Jira"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: ">- Standard Post-merge ops block for dimension PRs and prod reload — DROP only (no backup), Glue ≥2×, prod compare (Jira"
+guidance_file: guidance/dimension-post-merge-ops.md

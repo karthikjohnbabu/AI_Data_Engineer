@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>DE-9654 — Solution 1 — yearly extracts (~5 runs)</title>
+<style>
+  :root{--ink:#101828;--muted:#475467;--border:#d0d5dd;--bg:#f8fafc;--card:#fff;--blue:#175cd3;--blue-bg:#eff8ff;--ok:#067647;--ok-bg:#ecfdf3;--warn:#b54708;--warn-bg:#fffaeb;--bad:#b42318;--bad-bg:#fef3f2;--purple:#6927da;--purple-bg:#f4ebff}
+  *{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",Calibri,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5}
+  .wrap{max-width:920px;margin:0 auto;padding:24px 18px 80px}
+  h1{font-size:1.4rem;margin:0 0 4px}.sub{color:var(--muted);font-size:.9rem;margin:0 0 16px}
+  h2{font-size:1.05rem;margin:1.8rem 0 .5rem;padding-bottom:5px;border-bottom:2px solid var(--blue)}
+  h3{font-size:.95rem;margin:1rem 0 .3rem;color:#344054}p,li{font-size:.9rem;color:#344054}
+  .verdict{background:var(--ok-bg);border:1px solid #abefc6;border-left:5px solid var(--ok);border-radius:8px;padding:14px 16px;margin:12px 0}
+  .badbox{background:var(--bad-bg);border:1px solid #fecdca;border-left:5px solid var(--bad);border-radius:8px;padding:14px 16px;margin:12px 0}
+  .warnbox{background:var(--warn-bg);border:1px solid #fec84b;border-left:5px solid var(--warn);border-radius:8px;padding:14px 16px;margin:12px 0}
+  .plan{background:var(--blue-bg);border:2px solid var(--blue);border-radius:10px;padding:14px 16px;margin:12px 0}
+  .exec{background:var(--purple-bg);border:2px solid var(--purple);border-radius:10px;padding:14px 16px;margin:12px 0}
+  .box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin:10px 0}
+  .exbox{background:#fff;border:1px dashed #98a2b3;border-radius:8px;padding:10px 12px;margin:10px 0}
+  .exbox .lbl{font-size:.7rem;font-weight:700;color:var(--purple);text-transform:uppercase;margin:0 0 6px}
+  table{width:100%;border-collapse:collapse;font-size:.78rem;margin:8px 0 14px;background:var(--card)}
+  th,td{border:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top}th{background:#f2f4f7}
+  code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8em;background:#f2f4f7;padding:1px 4px;border-radius:3px}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.66rem;font-weight:700}
+  .pill-ok{background:#abefc6;color:#067647}.pill-warn{background:#fedf89;color:#b54708}.pill-new{background:#f4ebff;color:#6927da}.pill-bad{background:#fecdca;color:#b42318}
+  .toc a{color:var(--blue);text-decoration:none}.toc li{margin:3px 0;font-size:.86rem}
+  .mermaid{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin:10px 0;overflow-x:auto}
+  pre.ex,pre.ascii{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:12px;font-size:.68rem;overflow-x:auto;line-height:1.4;white-space:pre}
+  .step{background:#fff;border:1px solid var(--border);border-left:5px solid var(--blue);border-radius:8px;padding:10px 12px;margin:8px 0}
+  .step strong.who{color:var(--purple)}
+  .callout{font-size:1.05rem;font-weight:700;margin:0 0 8px}
+  .jira-paste{background:#fff;border:2px dashed #98a2b3;border-radius:10px;padding:16px;margin:12px 0;font-size:.93rem;line-height:1.55}
+  footer{margin-top:2rem;color:var(--muted);font-size:.8rem}.muted{color:var(--muted);font-size:.85rem}
+
+</style>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({startOnLoad:true,theme:"neutral",securityLevel:"loose"});
+</script>
+</head>
+<body>
+<div class="wrap">
+
+<h1>DE-9654 — Solution 1 — yearly extracts (~5 runs)</h1>
+<p class="sub">
+  <a href="proposed_solution.html">← chooser</a> ·
+  also see <a href="proposed_solution_2.html">Solution 2 (one-shot)</a> ·
+  BAU / resume · <strong>year-by-year through Redshift</strong> (~5 loops) · 2026-09-09
+</p>
+
+<div class="warnbox">
+  <p class="callout">When to use Solution 1</p>
+  <p><strong>Yes — finish each year to gold before the next.</strong>
+    Loop: SQL→S3 → arrange → MERGE that year into Redshift → next year.
+    Camera only after all five years. Better resume + safer dim timeout than
+    one 42.7M MERGE.</p>
+  <p style="margin-bottom:0"><strong>Alternative:</strong>
+    <a href="proposed_solution_2.html">Solution 2</a> is one extract for the
+    full pre-cutoff window (~42.7M) with <code>num_partitions=1</code> —
+    simplest ops if BAU allows one multi-hour scan.</p>
+</div>
+
+<div class="verdict">
+  <p class="callout">Locked write path + year loop</p>
+  <ol style="margin:0;padding-left:1.2rem">
+    <li><strong>Per year (repeat ×5):</strong>
+      SQL→S3 → S3→Iceberg → Iceberg→Redshift MERGE for
+      <strong>that year only</strong>, then move to the next year.
+      Do <strong>not</strong> extract all five years first and MERGE once.</li>
+    <li><strong>SQL→S3:</strong> EXISTING <code>{env}-sql-server-extraction</code>
+      (off-peak, NOLOCK, PlayerBK, <code>num_partitions=1</code>).</li>
+    <li><strong>S3→Iceberg:</strong> EXISTING arrange +
+      <strong>NEW</strong> <code>cash_balance_legacy.json</code>
+      (<code>upsert_nocheck</code>).</li>
+    <li><strong>Iceberg→Redshift:</strong> MERGE year slice
+      <code>balance_date &gt;= year_start AND balance_date &lt; year_end
+      AND balance_date &lt; cutoff</code> (keeps MERGEs ≤ ~21M — safer for
+      120&nbsp;min dim timeout).</li>
+    <li><strong>After all 5 years:</strong> camera dim ≥2× for ≥ cutoff.
+      Not between years.</li>
+  </ol>
+</div>
+
+<div class="badbox">
+  <p class="callout">Can we promise 100% success?</p>
+  <p style="margin-bottom:0"><strong>No — and we must not tell Andrew that.</strong>
+    Lift-and-shift succeeds under a <strong>defined contract</strong> (below),
+    not “SQL total forever equals Redshift” or “every attribute matches
+    including BalanceDate semantics.” Residual risks: cutoff choice, HEAP
+    extract completeness, BalanceDate load-stamp vs event-day (DE-9554),
+    PlayerBK mapping, overlap if cutoff wrong.</p>
+</div>
+
+<div class="plan">
+  <p class="callout">THE PLAN</p>
+  <ol style="margin:0;padding-left:1.2rem">
+    <li>Reuse extract + arrange; NEW JSON + dim tip that can MERGE a
+      <strong>year slice</strong> (not only a one-shot full legacy dump).</li>
+    <li><strong>Year-by-year pipe:</strong> for each year finish
+      SQL → S3 → Iceberg → Redshift before starting the next.</li>
+    <li>Camera only after all five years are in gold.</li>
+    <li><a href="proposed_solution_2.html">Solution 2</a> = one extract + one
+      full MERGE if BAU allows one-shot.</li>
+  </ol>
+</div>
+
+<div class="exec">
+  <p class="callout">THEN WE EXECUTE</p>
+  <ol style="margin:0;padding-left:1.2rem">
+    <li>Andrew: lock cutoff + BAU/index + JDBC host.</li>
+    <li>Ship JSON + dim tip → DEV: prove <strong>2024 end-to-end to RS</strong>
+      → remaining years the same way → camera → validate.</li>
+    <li>Operator: loop in <a href="#you">§2</a>.</li>
+  </ol>
+</div>
+
+<div class="box toc">
+  <strong>Jump</strong>
+  <ol>
+    <li><a href="#quick">Quick test — pre-flight (run first)</a></li>
+    <li><a href="#success">Success contract (honest)</a></li>
+    <li><a href="#you">What YOU do — step by step</a></li>
+    <li><a href="#merge">MERGE vs UNION — proof</a></li>
+    <li><a href="#edge">Bottlenecks &amp; edge cases</a></li>
+    <li><a href="#volumes">Volumes (live)</a></li>
+    <li><a href="#e2e">End-to-end</a></li>
+    <li><a href="#jobs">EXISTING vs NEW</a></li>
+    <li><a href="#overrides">SQL→S3 overrides</a></li>
+    <li><a href="#json">NEW JSON EXAMPLE</a></li>
+    <li><a href="#gold">Iceberg→Redshift Glue tip</a></li>
+    <li><a href="#open">Still open</a></li>
+    <li><a href="#jira">Jira / Teams paste</a></li>
+  </ol>
+</div>
+
+
+<!-- QUICK TEST -->
+<h2 id="quick">0. Quick test — pre-flight (run first)</h2>
+<p>Confirm the platform pieces exist and a <strong>yearly</strong> extract is
+  doable before shipping JSON / dim tip. Run in your terminal (SSO). Tick
+  PASS/FAIL on the ticket.</p>
+<p class="muted">Live-checked <strong>2026-09-09</strong> (prod + DEV) —
+  re-run before you start; SSO can drift.</p>
+<p class="muted"><strong>Raw buckets (verified from Glue job defaults):</strong>
+  DEV <code>s3://raw-dp-dev-767828768594-euw2/sql-server-extraction/</code>,
+  PROD <code>s3://raw-dp-prod-490004657962-euw2/sql-server-extraction/</code>.
+  <code>CashBalance/segment=2024/</code> does not exist yet in either env
+  (expected before first run).</p>
+
+<table>
+  <tr><th>#</th><th>What</th><th>Where / command</th><th>Expect (verified 2026-09-09)</th><th>☐</th></tr>
+  <tr>
+    <td>Q1</td>
+    <td>Extract job exists</td>
+    <td><code>aws glue get-job --job-name {env}-sql-server-extraction</code></td>
+    <td><strong>EXISTS</strong> prod+DEV: G.2X × 10, timeout <strong>2880</strong> (48h)</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q2</td>
+    <td>Extract accepts yearly overrides</td>
+    <td>get-job DefaultArguments keys</td>
+    <td>Has <code>--start_value</code>, <code>--end_value</code>,
+      <code>--partition_column</code>, <code>--partition_column_type</code>,
+      <code>--num_partitions</code>, <code>--query_template</code>,
+      <code>--s3_output_path</code>, <code>--use_nolock</code></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q3</td>
+    <td>Arrange job exists</td>
+    <td><code>aws glue get-job --job-name {env}-arrange-parquet-processing</code></td>
+    <td><strong>EXISTS</strong> prod+DEV</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q4</td>
+    <td>Cash balance dim exists</td>
+    <td><code>aws glue get-job --job-name {env}_uk_digital_dimension_cash_balance</code></td>
+    <td><strong>EXISTS</strong>; timeout <strong>120</strong> min (gold MERGE may need bump after all years land)</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q5</td>
+    <td>Sibling legacy Iceberg</td>
+    <td><code>get-table … dimension_self_exclusion_legacy</code></td>
+    <td><strong>EXISTS</strong> prod+DEV</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q6</td>
+    <td>CashBalance legacy Iceberg</td>
+    <td><code>get-table … dimension_cash_balance_legacy</code></td>
+    <td><strong>ABSENT</strong> (expected) until NEW JSON + arrange</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q7</td>
+    <td>Camera source</td>
+    <td>Catalog <code>player_balances</code></td>
+    <td><strong>EXISTS</strong> <code>petfre_franchisedb.player_balances</code></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q8</td>
+    <td>Watermark table</td>
+    <td><code>describe-table {env}-ETLJobControl</code></td>
+    <td><strong>EXISTS</strong> ACTIVE — dim watermarks only</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q9</td>
+    <td>Migration JSON sibling</td>
+    <td>etl-customer <code>self_exclusion.json</code></td>
+    <td><strong>EXISTS</strong></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q10</td>
+    <td>SQL year count doable</td>
+    <td>SSMS test Unity</td>
+    <td>e.g. 2024 full year COUNT ≈ <strong>~20.7M</strong>; vCashBalance has PlayerBK</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q11</td>
+    <td>CashBalance target prefix state</td>
+    <td><code>aws s3 ls s3://raw-dp-dev-767828768594-euw2/sql-server-extraction/CashBalance/segment=2024/</code><br/>
+      <code>aws s3 ls s3://raw-dp-prod-490004657962-euw2/sql-server-extraction/CashBalance/segment=2024/</code></td>
+    <td><strong>Empty / not found</strong> before first extract (expected)</td>
+    <td></td>
+  </tr>
+</table>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — copy/paste prod checks</p>
+<pre class="ex">export AWS_PROFILE=prod AWS_REGION=eu-west-2
+aws glue get-job --job-name prod-sql-server-extraction \
+  --query 'Job.{Name:Name,Timeout:Timeout,Workers:NumberOfWorkers,WorkerType:WorkerType}'
+aws glue get-job --job-name prod-arrange-parquet-processing --query 'Job.Name'
+aws glue get-job --job-name prod_uk_digital_dimension_cash_balance \
+  --query 'Job.{Name:Name,Timeout:Timeout}'
+aws glue get-table --database-name prod_dp_dwh_uk_digital \
+  --name dimension_self_exclusion_legacy --query 'Table.Name'
+aws glue get-table --database-name prod_dp_dwh_uk_digital \
+  --name dimension_cash_balance_legacy --query 'Table.Name'   # expect EntityNotFound
+aws dynamodb describe-table --table-name prod-ETLJobControl --query 'Table.TableStatus'
+aws s3 ls s3://raw-dp-prod-490004657962-euw2/sql-server-extraction/
+aws s3 ls s3://raw-dp-prod-490004657962-euw2/sql-server-extraction/CashBalance/segment=2024/
+# DEV: swap prod→dev</pre>
+</div>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — DEV proof — one year extract (Solution 1 doable check)</p>
+<pre class="ex">Job: dev-sql-server-extraction
+--start_value = 2024-01-01
+--end_value   = 2025-01-01
+--partition_column = BalanceDate
+--partition_column_type = date
+--num_partitions = 1
+--s3_output_path = s3://raw-dp-dev-767828768594-euw2/sql-server-extraction/CashBalance/segment=2024/
+--query_template = SELECT PlayerBK, Balance, BalanceDate
+    FROM Dimension.vCashBalance WITH (NOLOCK)
+    WHERE BalanceDate &gt;= '{start}' AND BalanceDate &lt; '{end}'
+
+PASS = SUCCEEDED + S3 count ≈ SQL ~20.7M (2024 full year)
+Then you know yearly extract is doable; continue remaining years.</pre>
+</div>
+
+<div class="banner" style="background:var(--warn-bg);border:1px solid #fec84b;border-left:5px solid var(--warn);border-radius:8px;padding:12px 14px;margin:12px 0">
+  <strong>Solution 1 specific:</strong> prove <strong>one year</strong> (e.g. 2024)
+  end-to-end after JSON ships before starting all 5. Always
+  <code>num_partitions=1</code> on yearly windows (otherwise ~365 JDBC scans).
+  Do not run two CashBalance extracts at once.
+</div>
+
+
+<!-- SUCCESS -->
+<h2 id="success">1. Success contract (honest — not “100%”)</h2>
+<table>
+  <tr><th>PASS means</th><th>Does NOT mean</th></tr>
+  <tr>
+    <td>Pre-cutoff history present in
+      <code>dimension.cash_balance</code> (~42.7M or ~41.5M per locked cutoff)</td>
+    <td>SQL total 103M == Redshift forever (post-cutoff lives on CDC camera)</td>
+  </tr>
+  <tr>
+    <td>Iceberg legacy count ≈ SQL COUNT for extracted windows</td>
+    <td>Attribute-perfect <code>balance_date</code> vs SQL (load-stamp vs event-day)</td>
+  </tr>
+  <tr>
+    <td>BK overlap on <code>(player_bk, balance_date)</code> for sampled windows</td>
+    <td>Compare YAML today (<code>player_bk</code> only) is enough — must fix profile</td>
+  </tr>
+  <tr>
+    <td>Camera dim covers ≥ CDC floor after legacy seed; no duplicate keys across cutoff</td>
+    <td>Blind UNION of legacy + camera without a hard date gate</td>
+  </tr>
+</table>
+
+<!-- YOU -->
+<h2 id="you">2. What YOU do — step by step</h2>
+<p>Split: <strong class="who">YOU (Prasath / ops)</strong> vs
+  <strong>ENG (code already designed — ship when unlocked)</strong>.</p>
+
+<div class="step">
+  <strong>0. Decisions (block everything)</strong> —
+  <strong class="who">YOU + Andrew</strong><br/>
+  Lock: (a) cutoff <strong>2025-07-01</strong> vs <strong>2025-06-16</strong>;
+  (b) JDBC host / Mart DB; (c) optional BalanceDate index / BAU window;
+  (d) extract <code>vCashBalance</code> (PlayerBK) vs base + map.
+  Write answers on the Jira ticket.
+</div>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — decision comment (paste to Jira after Andrew replies)</p>
+<pre class="ex">DE-9654 decisions (locked):
+- Cutoff = 2025-07-01   (or 2025-06-16 — pick ONE)
+- Extract from Dimension.vCashBalance (PlayerBK, Balance, BalanceDate)
+- JDBC = &lt;host&gt; / EnterpriseDataMartUnity
+- BAU = off-peak after usp_CashBalanceSharp (~03:30); serial yearly windows
+- Approach = Solution 1 yearly (~5 starts)   [or switch to Solution 2 one-shot]</pre>
+</div>
+
+<div class="step">
+  <strong>1. Ship artefacts</strong> — <strong>ENG</strong> then
+  <strong class="who">YOU</strong> merge/deploy<br/>
+  (1a) Add <code>cash_balance_legacy.json</code> in etl-customer → Jenkins apply.<br/>
+  (1b) Tip <code>uk_digital_dimension_cash_balance</code> with
+  <code>is_initial_load</code> legacy MERGE (§10) → data-jobs → DEV apply.<br/>
+  Do <strong>not</strong> start extracts until both are in the target env.
+</div>
+
+<div class="step">
+  <strong>2. DEV proof — one year end-to-end (through Redshift)</strong> —
+  <strong class="who">YOU</strong><br/>
+  Prefer <strong>2024</strong> (~20.7M — hardest year).<br/>
+  For that year only, run the full pipe below. Do not extract 2021–2025 first.
+</div>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — one year loop (repeat for each year)</p>
+<pre class="ex">For YEAR in [2024, 2021, 2022, 2023, 2025H1]:   # 2024 first as proof
+
+  A) SQL→S3
+     sql-server-extraction for [year_start, year_end)
+     num_partitions=1 · off-peak · wait SUCCEEDED
+     COUNT SQL ≈ COUNT S3
+
+  B) S3→Iceberg
+     arrange-parquet + cash_balance_legacy.json
+     wait SUCCEEDED · Athena COUNT for that year ≈ SQL
+
+  C) Iceberg→Redshift
+     dim MERGE only that year slice:
+       balance_date &gt;= year_start
+       AND balance_date &lt; year_end
+       AND balance_date &lt; cutoff
+     COUNT gold for that year ≈ Iceberg
+     spot-check 5 players
+
+  D) Tick Jira row for YEAR (all three hops PASS)
+  E) ONLY THEN start next YEAR
+
+After ALL 5 years PASS:
+  F) Camera dim ≥2× for ≥ cutoff
+  G) Validate + Done
+
+NEVER: extract all years → arrange once → one giant MERGE
+(that is closer to Solution 2 and hurts resume + 120min timeout)</pre>
+</div>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — 2024 extract overrides (step A)</p>
+<pre class="ex">Job: dev-sql-server-extraction
+
+--partition_column = BalanceDate
+--partition_column_type = date
+--start_value = 2024-01-01
+--end_value = 2025-01-01
+--num_partitions = 1
+--s3_output_path = s3://raw-dp-dev-767828768594-euw2/sql-server-extraction/CashBalance/segment=2024/
+--segment_id = cash_balance_2024
+--use_nolock = true
+--query_template =
+SELECT PlayerBK, Balance, BalanceDate
+FROM Dimension.vCashBalance WITH (NOLOCK)
+WHERE BalanceDate &gt;= '{start}' AND BalanceDate &lt; '{end}'
+
+# Expected ~20.7M rows (confirm SQL COUNT before/after)</pre>
+</div>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — count check after 2024 full pipe (A+B+C)</p>
+<pre class="ex">SQL:     COUNT 2024-01-01 → 2025-01-01  ≈ 20.7M
+S3/Athena segment=2024 / Iceberg that year     ≈ 20.7M
+RS gold: COUNT WHERE balance_date &gt;= '2024-01-01'
+              AND balance_date &lt; '2025-01-01'   ≈ 20.7M
+PASS → next year. FAIL → stop; fix before continuing.</pre>
+</div>
+
+<div class="step">
+  <strong>3. Remaining years (same loop)</strong> —
+  <strong class="who">YOU</strong><br/>
+  After 2024 PASS: run 2021 → 2022 → 2023 → 2025H1 with the
+  <strong>same A→B→C</strong> pattern. Serial. Off-peak.
+  Always <code>num_partitions=1</code>.
+</div>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — year windows (Jul cutoff)</p>
+<pre class="ex">Order (after 2024 proof): 2021 → 2022 → 2023 → 2025H1
+
+1) 2021-03-01 → 2022-01-01     ~0.1M
+2) 2022-01-01 → 2023-01-01     ~small
+3) 2023-01-01 → 2024-01-01     ~6.9M
+4) 2024-01-01 → 2025-01-01     ~20.7M   ← already done as proof
+5) 2025-01-01 → 2025-07-01     ~14.9M   (or end 2025-06-16)
+
+Each year: extract SUCCEEDED → arrange SUCCEEDED → RS year MERGE PASS
+THEN next year. Camera only after year 5.</pre>
+</div>
+
+<div class="step">
+  <strong>4. Camera (once, after all years)</strong> —
+  <strong class="who">YOU</strong><br/>
+  Watermark to CDC floor → camera ≥2× →
+  duplicate-key check on gold = 0 across cutoff.
+</div>
+<div class="step">
+  <strong>5. DEV validate</strong> —
+  <strong class="who">YOU / agent</strong><br/>
+  test SQL → DEV Redshift; BK
+  <code>(player_bk, balance_date)</code>; document BalanceDate caveat.
+</div>
+<div class="step">
+  <strong>6. Prod (permission)</strong> —
+  <strong class="who">YOU + Andrew yes</strong><br/>
+  Same year-by-year pipe (A→B→C ×5) → camera → post-deploy validation.
+</div>
+<div class="step">
+  <strong>7. After Done</strong><br/>
+  Only watch camera FAIL / SNS. No new scheduler.
+</div>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — Jira checklist (one row = full year pipe)</p>
+<pre class="ex">year   | sql→s3 | s3→iceberg | iceberg→rs | rows ≈     | notes
+2024   | PASS   | PASS       | PASS       | ~20.7M     | proof first
+2021   |        |            |            | ~0.1M      |
+2022   |        |            |            |            |
+2023   |        |            |            | ~6.9M      |
+2025H1 |        |            |            | ~14.9M     | ends at cutoff
+ALL    |        |            |            | ~42.7M     | then camera</pre>
+</div>
+
+<!-- MERGE VS UNION -->
+<h2 id="merge">3. MERGE vs UNION — solid proof (Andrew)</h2>
+<p>Andrew asked whether <strong>UNION</strong> might replace <strong>MERGE</strong>.
+  Short answer: <strong>use MERGE with a hard date gate</strong>. UNION is only
+  safe as a <em>compose</em> of two already-disjoint sets — it is not the
+  Redshift write API we use today.</p>
+
+<h3>3.1 What the platform actually does today</h3>
+<table>
+  <tr><th>Layer</th><th>Mechanism</th><th>Evidence</th></tr>
+  <tr>
+    <td>BAU camera gold</td>
+    <td><code>redshift_sync</code> → Redshift
+      <code>MERGE … WHEN MATCHED UPDATE … WHEN NOT MATCHED INSERT</code>
+      on <code>player_bk, balance_date</code></td>
+    <td><code>uk_digital_dimension_cash_balance.py</code>;
+      etl-common <code>redshift_sync.py</code></td>
+  </tr>
+  <tr>
+    <td>Migration Iceberg</td>
+    <td><code>insert_pattern: upsert_nocheck</code> → Iceberg MERGE</td>
+    <td><code>self_exclusion.json</code>; etl-common <code>iceberg_sync.py</code></td>
+  </tr>
+  <tr>
+    <td>Sibling historic gold seed</td>
+    <td>Dim <code>is_initial_load</code> reads
+      <code>*_legacy</code> Iceberg, <strong>date filter</strong>, then
+      <code>redshift_sync</code> MERGE — then normal CDC path</td>
+    <td><code>uk_digital_dimension_self_exclusion.py</code>
+      (<code>date_last_modified &lt; 2026-04-01</code>)</td>
+  </tr>
+  <tr>
+    <td>Spark <code>unionByName</code> in cash_balance</td>
+    <td>Only updates <strong>in-memory baseline</strong> between days —
+      not historic SQL ∪ CDC into gold</td>
+    <td><code>update_baseline</code> in the cash_balance dim</td>
+  </tr>
+</table>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — self_exclusion pattern (what we copy)</p>
+<pre class="ex"># self_exclusion.py (concept)
+if watermark == 1970-01-01:          # is_initial_load
+    load FROM dimension_self_exclusion_legacy
+    WHERE date_last_modified &lt; '2026-04-01'
+    → redshift_sync MERGE
+# then normal CDC / curated path for later rows
+
+# cash_balance tip (same idea)
+if watermark == 1970-01-01:
+    load FROM dimension_cash_balance_legacy
+    WHERE balance_date &lt; '{CUTOFF}'
+    → redshift_sync MERGE on (player_bk, balance_date)
+# then camera from player_balances for days ≥ CUTOFF</pre>
+</div>
+
+<h3>3.2 What goes wrong with blind UNION</h3>
+<table>
+  <tr><th>If you…</th><th>Then…</th></tr>
+  <tr>
+    <td>UNION ALL legacy + camera into gold with overlapping
+      <code>(player_bk, balance_date)</code></td>
+    <td><strong>Duplicate keys</strong> — reporting double-counts</td>
+  </tr>
+  <tr>
+    <td>UNION curated Iceberg
+      <code>dimension_cash_balance_legacy</code> with
+      <code>player_balances</code></td>
+    <td><strong>Different grain</strong> (mart change rows vs 6.58B audit CDC) —
+      invalid table</td>
+  </tr>
+  <tr>
+    <td>MERGE without date gate across Jun–Jul 2025 overlap</td>
+    <td><strong>Silent overwrite</strong> — SQL load-stamp vs camera event-day
+      fight on same PK</td>
+  </tr>
+</table>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — colliding key (why blind UNION fails)</p>
+<pre class="ex">Same business key on both sides of the cutoff fight:
+
+  legacy row:  player_bk=P1, balance_date=2025-06-20, balance=10.00  (SQL mart)
+  camera row:  player_bk=P1, balance_date=2025-06-20, balance=12.50  (CDC day)
+
+Blind UNION ALL → TWO gold rows for (P1, 2025-06-20) → double-count.
+Blind MERGE with no date gate → last writer wins silently (wrong semantics).
+
+Safe: legacy only where balance_date &lt; cutoff;
+      camera only where balance_date ≥ cutoff;
+      then MERGE each set (or compose then MERGE — see 3.3).</pre>
+</div>
+
+<h3>3.3 When UNION <em>is</em> OK</h3>
+<p>Only as Spark compose <strong>after</strong> proving disjointness:</p>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — safe compose (UNION then still MERGE)</p>
+<pre class="ex">legacy  = Iceberg legacy WHERE balance_date &lt;  cutoff
+camera  = CDC transform     WHERE balance_date &gt;= cutoff
+assert  count(legacy ∩ camera on PK) == 0
+frame   = legacy UNION ALL camera     -- compose only
+write   = redshift_sync MERGE(frame)  -- still MERGE to gold
+
+# That is still the self_exclusion idea (gate then write).
+# It is NOT “replace MERGE with UNION.”</pre>
+</div>
+
+<div class="verdict">
+  <strong>Recommendation to Andrew:</strong> lift-and-shift = extract SQL →
+  Iceberg legacy (upsert_nocheck) → <strong>date-gated MERGE</strong> into
+  <code>dimension.cash_balance</code> → camera for ≥ cutoff. Same as
+  self_exclusion. Do not UNION CDC audit into the mart legacy table.
+</div>
+
+<!-- EDGE -->
+<h2 id="edge">4. Bottlenecks &amp; edge cases</h2>
+
+<h3>4.1 Bottlenecks (proven)</h3>
+<table>
+  <tr><th>Risk</th><th>Evidence</th><th>Mitigation</th></tr>
+  <tr>
+    <td><strong>SQL HEAP full scan</strong></td>
+    <td>No NCI; 2,711 MB; peak month 3.19M</td>
+    <td>Optional DBA index; off-peak; serial; yearly grain; narrow SELECT + NOLOCK</td>
+  </tr>
+  <tr>
+    <td>BAU conflict with nightly Sharp load</td>
+    <td><code>usp_CashBalanceSharp</code> ~03:30 stamps</td>
+    <td>Extract after that window; Andrew BAU OK</td>
+  </tr>
+  <tr>
+    <td>Glue worker count</td>
+    <td>G.2X×10 / 48h already sized</td>
+    <td><strong>Do not</strong> add workers — won’t fix HEAP</td>
+  </tr>
+  <tr>
+    <td>Dumping Sharp <code>player_balances</code> as historic</td>
+    <td>~6.58B Iceberg rows</td>
+    <td><strong>Out of scope</strong> — SQL mart extract only</td>
+  </tr>
+  <tr>
+    <td>One-shot vs yearly</td>
+    <td>Solution 2 needs one long HEAP scan</td>
+    <td>Solution 1 = resume insurance; Solution 2 = fewer starts</td>
+  </tr>
+</table>
+
+<h3>4.2 Edge cases (must handle)</h3>
+<table>
+  <tr><th>#</th><th>Edge case</th><th>What happens if ignored</th><th>Control</th></tr>
+  <tr>
+    <td>E1</td>
+    <td>Cutoff Jul 1 vs Jun 16</td>
+    <td>Overlap → MERGE overwrite or UNION dupes</td>
+    <td>Lock one cutoff; filter legacy <code>&lt; cutoff</code>; camera <code>≥ cutoff</code></td>
+  </tr>
+  <tr>
+    <td>E2</td>
+    <td>BalanceDate semantics (SQL load-stamp vs camera day)</td>
+    <td>Attribute compare never 100%</td>
+    <td>Document in Jira; gate on presence + BK grain, not date equality</td>
+  </tr>
+  <tr>
+    <td>E3</td>
+    <td>PlayerID vs PlayerBK</td>
+    <td>Wrong ID space in gold</td>
+    <td>Extract <code>vCashBalance</code> / PlayerBK (confirm view)</td>
+  </tr>
+  <tr>
+    <td>E4</td>
+    <td>Re-run same month</td>
+    <td>OK if upsert_nocheck + MERGE idempotent</td>
+    <td>Same PK; don’t change cutoff mid-flight</td>
+  </tr>
+  <tr>
+    <td>E5</td>
+    <td>Empty / short gold today (~1.98M)</td>
+    <td>Green camera ≠ full history</td>
+    <td>Expect gold to grow by ~40M after seed</td>
+  </tr>
+  <tr>
+    <td>E6</td>
+    <td>Camera watermark epoch after seed</td>
+    <td>Camera may reprocess CDC and fight legacy if filter missing</td>
+    <td>Initial_load only loads <code>&lt; cutoff</code>; camera watermark ≥ floor</td>
+  </tr>
+  <tr>
+    <td>E7</td>
+    <td>Compare profile PK = <code>player_bk</code> only</td>
+    <td>False match / useless historic compare</td>
+    <td>Change to <code>player_bk, balance_date</code> before gate</td>
+  </tr>
+  <tr>
+    <td>E8</td>
+    <td>Two extracts concurrent</td>
+    <td>HEAP / BAU meltdown</td>
+    <td>Operator serial only</td>
+  </tr>
+  <tr>
+    <td>E9</td>
+    <td>Confusing <code>sgp_player_balance</code> with dim source</td>
+    <td>Wrong table</td>
+    <td>Camera reads <code>player_balances</code> only</td>
+  </tr>
+</table>
+
+<!-- VOLUMES -->
+<h2 id="volumes">5. Volumes (live SQL 2026-09-09)</h2>
+<p class="muted">test SQL <code>BGB-BT-SQL-01</code> /
+  <code>EnterpriseDataMartUnity.Dimension.CashBalance</code> (NOLOCK).</p>
+<table>
+  <tr><th>Measure</th><th>Value</th></tr>
+  <tr><td>SQL total</td><td><strong>103,767,561</strong></td></tr>
+  <tr><td>Pre 2025-07-01</td><td><strong>42,706,989</strong></td></tr>
+  <tr><td>Pre 2025-06-16</td><td><strong>41,539,433</strong></td></tr>
+  <tr><td>HEAP data</td><td><strong>2,711 MB</strong> — no indexes</td></tr>
+  <tr><td>Year window 2021 (from 2021-03)</td><td>~0.1M (reconfirm)</td></tr>
+  <tr><td>Year window 2022</td><td>~small (reconfirm)</td></tr>
+  <tr><td>Year window 2023</td><td>~6.9M (mostly from Jun+)</td></tr>
+  <tr><td>Year window 2024</td><td>~<strong>20.7M</strong> (largest)</td></tr>
+  <tr><td>Year window 2025-01→cutoff</td><td>~<strong>14.9M</strong> (to Jul 1)</td></tr>
+  <tr><td>Yearly Glue starts</td><td><strong>5</strong></td></tr>
+  <tr><td>Iceberg CDC floor</td><td><strong>2025-06-16</strong> on <code>player_balances</code></td></tr>
+  <tr><td>Prod gold today</td><td>~1.98M (late Aug 2026 camera only)</td></tr>
+</table>
+<p><strong>Chunk verdict:</strong> yearly OK for G.2X×10 / 48h (~15–21M/year);
+  bottleneck = HEAP; concurrency = 1; always <code>num_partitions=1</code>.
+  Estimates from prior monthly histogram (2026-09-09) — run
+  <code>COUNT(*)</code> per window before each extract. Solution 2 = one-shot
+  if BAU allows.</p>
+
+<!-- E2E -->
+<h2 id="e2e">6. End-to-end</h2>
+<div class="mermaid">
+flowchart TB
+  SQL["SQL Dimension.CashBalance\nHEAP 2.7GB / 103.8M"]
+  PRE["Pre-cutoff slice\n~42.7M"]
+  S3["S3 CashBalance parquet\n~5 yearly extracts"]
+  ICE["Iceberg dimension_cash_balance_legacy\nupsert_nocheck MERGE"]
+  GOLD["Redshift dimension.cash_balance"]
+  CAM["Camera dim\nplayer_balances ≥ cutoff"]
+
+  SQL --> PRE
+  PRE -->|"SQL→S3"| S3
+  S3 -->|"arrange + NEW JSON"| ICE
+  ICE -->|"initial_load MERGE\nbalance_date &lt; cutoff"| GOLD
+  CAM -->|"redshift_sync MERGE\n≥ cutoff"| GOLD
+</div>
+
+<pre class="ascii">
+  FOR each year (2024 proof first, then 2021→2022→2023→2025H1):
+      SQL ──SQL→S3──► S3 ──S3→Iceberg──► Iceberg legacy
+                                            │
+                         MERGE that year only (&lt; cutoff)
+                                            ▼
+                                 dimension.cash_balance
+      NEXT year only after year PASS
+
+  AFTER all 5 years:
+      camera MERGE ≥ cutoff ──► same gold
+</pre>
+
+<!-- JOBS -->
+<h2 id="jobs">7. EXISTING vs NEW</h2>
+<table>
+  <tr><th>Piece</th><th>Name</th><th>Status</th><th>Role</th></tr>
+  <tr><td>SQL→S3</td><td><code>{env}-sql-server-extraction</code></td><td><span class="pill pill-ok">EXISTING</span></td><td>Per-window overrides</td></tr>
+  <tr><td>S3→Iceberg</td><td><code>{env}-arrange-parquet-processing</code></td><td><span class="pill pill-ok">EXISTING</span></td><td>+ NEW JSON</td></tr>
+  <tr><td>Recipe</td><td><code>cash_balance_legacy.json</code></td><td><span class="pill pill-new">NEW</span></td><td>etl-customer</td></tr>
+  <tr><td>Iceberg→Redshift</td><td><code>uk_digital_dimension_cash_balance</code> + initial_load</td><td><span class="pill pill-new">NEW tip</span></td><td>Date-gated MERGE</td></tr>
+  <tr><td>Camera</td><td>same dim job</td><td><span class="pill pill-ok">EXISTING</span></td><td>≥ cutoff</td></tr>
+</table>
+
+<h3>7.1 Hop job details (operator quick view)</h3>
+<table>
+  <tr><th>Hop</th><th>Job / artefact</th><th>What it does</th><th>Key runtime settings</th></tr>
+  <tr>
+    <td>SQL→S3</td>
+    <td><code>{env}-sql-server-extraction</code></td>
+    <td>Reads <code>Dimension.vCashBalance</code> and lands yearly parquet segments to raw S3</td>
+    <td>G.2X × 10, timeout 2880 (48h), <code>partition_column=BalanceDate</code>, <code>partition_column_type=date</code>, <code>num_partitions=1</code>, <code>fetch_size=100000</code>, <code>NOLOCK</code>, serial only</td>
+  </tr>
+  <tr>
+    <td>S3→Iceberg</td>
+    <td><code>{env}-arrange-parquet-processing</code> + <code>cash_balance_legacy.json</code></td>
+    <td>Maps raw parquet to curated Iceberg <code>dimension_cash_balance_legacy</code></td>
+    <td>Uses mapping JSON PK <code>player_bk, balance_date</code>, <code>insert_pattern=upsert_nocheck</code>; one year slice per loop</td>
+  </tr>
+  <tr>
+    <td>Iceberg→Redshift</td>
+    <td><code>uk_digital_dimension_cash_balance</code> (initial_load tip)</td>
+    <td>Merges the current year slice from Iceberg legacy into gold for <code>balance_date &lt; cutoff</code></td>
+    <td>Current timeout 120 min; MERGE on <code>player_bk, balance_date</code>; run once per year after arrange PASS</td>
+  </tr>
+  <tr>
+    <td>Camera (after all years)</td>
+    <td>Same <code>uk_digital_dimension_cash_balance</code> BAU path</td>
+    <td>Continues CDC-based updates from <code>player_balances</code> for <code>balance_date ≥ cutoff</code></td>
+    <td>Watermark-managed; run ≥2 times after historic year loops complete</td>
+  </tr>
+</table>
+
+<!-- OVERRIDES -->
+<h2 id="overrides">8. SQL→S3 overrides (every extract)</h2>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — yearly extract template (2024)</p>
+<pre class="ex">Job: {env}-sql-server-extraction
+
+--jdbc_url = jdbc:sqlserver://&lt;host&gt;;databaseName=EnterpriseDataMartUnity
+   (NOT Warehouse default — confirm host with Andrew)
+--partition_column = BalanceDate
+--partition_column_type = date
+--start_value = 2024-01-01
+--end_value = 2025-01-01
+--num_partitions = 1          # CRITICAL every year (else ~365 JDBC scans)
+--s3_output_path = s3://raw-dp-dev-767828768594-euw2/sql-server-extraction/CashBalance/segment=2024/
+--segment_id = cash_balance_2024
+--use_nolock = true
+--query_template =
+SELECT PlayerBK, Balance, BalanceDate
+FROM Dimension.vCashBalance WITH (NOLOCK)
+WHERE BalanceDate &gt;= '{start}' AND BalanceDate &lt; '{end}'
+
+Workers / timeout: leave job defaults (G.2X×10, 48h).</pre>
+</div>
+
+<h3>8.1 SQL Server partitioning + performance guardrails (must follow)</h3>
+<table>
+  <tr><th>Setting / check</th><th>Required value</th><th>Why</th></tr>
+  <tr>
+    <td><code>partition_column</code></td>
+    <td><code>BalanceDate</code></td>
+    <td>Windowed yearly slices; aligns with the extract predicate</td>
+  </tr>
+  <tr>
+    <td><code>partition_column_type</code></td>
+    <td><code>date</code></td>
+    <td>Correct branch for date windows in extraction job</td>
+  </tr>
+  <tr>
+    <td><code>num_partitions</code></td>
+    <td><strong>1</strong> (default for this ticket)</td>
+    <td>Avoid day-level partition fan-out on HEAP (~365 scans/year)</td>
+  </tr>
+  <tr>
+    <td><code>fetch_size</code></td>
+    <td><code>100000</code></td>
+    <td>Matches job default; balanced JDBC batch size for this load</td>
+  </tr>
+  <tr>
+    <td>Concurrency</td>
+    <td><strong>1 active CashBalance extract only</strong></td>
+    <td>Do not run two year slices in parallel on SQL HEAP</td>
+  </tr>
+  <tr>
+    <td>Source hint</td>
+    <td><code>WITH (NOLOCK)</code> on read-only historic pull</td>
+    <td>Reduces lock pressure during long scans</td>
+  </tr>
+</table>
+
+<div class="warnbox">
+  <p class="callout">Do not use Glue defaults blindly for date partitioning</p>
+  <p style="margin-bottom:0">
+    In this flow, missing <code>num_partitions</code> is unsafe for a date range on
+    a HEAP source. Always set it explicitly per run (Solution 1 baseline:
+    <strong>1</strong>). Increase only if Andrew/DBA confirms BAU headroom and after
+    a probe shows stable SQL impact.
+  </p>
+</div>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — all 5 windows (Jul cutoff)</p>
+<pre class="ex"># Same query_template / num_partitions=1 / jdbc for every run
+
+segment=2021/   start=2021-03-01  end=2022-01-01
+segment=2022/   start=2022-01-01  end=2023-01-01
+segment=2023/   start=2023-01-01  end=2024-01-01
+segment=2024/   start=2024-01-01  end=2025-01-01   # DEV proof
+segment=2025H1/ start=2025-01-01  end=2025-07-01   # or 2025-06-16
+
+DEV bucket base:  s3://raw-dp-dev-767828768594-euw2/sql-server-extraction/CashBalance/
+PROD bucket base: s3://raw-dp-prod-490004657962-euw2/sql-server-extraction/CashBalance/
+
+Before each: SELECT COUNT(*) … WHERE BalanceDate &gt;= start AND &lt; end
+Serial only — wait SUCCEEDED before next year.</pre>
+</div>
+
+<!-- JSON -->
+<h2 id="json">9. NEW JSON — full EXAMPLE</h2>
+<p><strong>Path:</strong>
+<code>migration-config/uk/digital/enterprisedatamartunity/cash_balance_legacy.json</code></p>
+<pre class="ex">{
+  "country": "UK",
+  "channel": "Digital",
+  "source": {
+    "s3": { "path": "sql-server-extraction/CashBalance", "format": "parquet" }
+  },
+  "targets": {
+    "glue": {
+      "catalog": "AwsDataCatalog",
+      "database": "{env}_dp_dwh_uk_digital",
+      "table": "dimension_cash_balance_legacy"
+    }
+  },
+  "mappings": {
+    "PlayerBK": "player_bk",
+    "Balance": "balance",
+    "BalanceDate": "balance_date"
+  },
+  "add_unique_id": false,
+  "primary_key": "player_bk, balance_date",
+  "insert_pattern": "upsert_nocheck",
+  "has_row_hash": false,
+  "additional_columns": [
+    { "type": "static_value", "name": "ds_platform", "value": "EDW" }
+  ]
+}</pre>
+<table>
+  <tr><th>Field</th><th>Why</th></tr>
+  <tr><td><code>primary_key</code></td><td>Matches BAU gold PK — idempotent re-arrange</td></tr>
+  <tr><td><code>upsert_nocheck</code></td><td>Sibling migration default; MERGE all matched</td></tr>
+  <tr><td><code>dimension_cash_balance_legacy</code></td><td>Keep CDC <code>player_balances</code> separate (grain)</td></tr>
+  <tr><td><code>PlayerBK</code> mapping</td><td>Avoid PlayerID ID-space mistake</td></tr>
+  <tr><td><code>ds_platform=EDW</code></td><td>Marks mart lift vs camera (optional but useful)</td></tr>
+</table>
+
+<!-- GOLD TIP -->
+<h2 id="gold">10. Iceberg→Redshift Glue tip (year slice)</h2>
+<p>For Solution 1 the dim must MERGE <strong>one year at a time</strong>
+  (not the entire legacy table in one go).</p>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — year-slice MERGE (ENG tip)</p>
+<pre class="ex"># Job args or watermark-driven slice for Solution 1:
+#   --legacy_year_start = 2024-01-01
+#   --legacy_year_end   = 2025-01-01
+#   --cutoff            = 2025-07-01   (locked with Andrew)
+
+df = spark.sql(f"""
+  SELECT player_bk, balance, balance_date, …
+  FROM …dimension_cash_balance_legacy
+  WHERE balance_date &gt;= timestamp '{year_start}'
+    AND balance_date &lt;  timestamp '{year_end}'
+    AND balance_date &lt;  timestamp '{CUTOFF}'
+""")
+redshift_sync(… MERGE on player_bk, balance_date)
+
+# Operator runs this once per year after that year's arrange PASS.
+# Camera path (player_balances ≥ CUTOFF) only after all 5 years done.
+
+# Why year slice: prod dim timeout = 120 min; full 42.7M MERGE may fail;
+# largest year ~20.7M is the stress test (2024 proof).</pre>
+</div>
+
+<p><strong>NEW code</strong> in
+  <code>uk_digital_dimension_cash_balance.py</code> — support year bounds
+  (or equivalent) for the legacy MERGE path. No second Glue job required.</p>
+
+<!-- OPEN -->
+<h2 id="open">11. Still open (Andrew)</h2>
+<ul>
+  <li>Cutoff: <strong>2025-07-01</strong> vs <strong>2025-06-16</strong></li>
+  <li>JDBC host / Mart + confirm <code>vCashBalance</code> has PlayerBK</li>
+  <li>Optional NCI / BAU extract window</li>
+  <li>Solution 1 (yearly ~5) vs <a href="proposed_solution_2.html">Solution 2</a> (one-shot) — BAU preference</li>
+  <li>Sign-off that DE-9554 camera tip stays in prod before historic seed</li>
+  <li>Compare profile PK update to <code>player_bk, balance_date</code></li>
+  <li>OK to bump cash_balance dim timeout if 120 min is too short for MERGE</li>
+</ul>
+
+<!-- JIRA -->
+<h2 id="jira">12. Jira / Teams paste</h2>
+<div class="jira-paste">
+<p><strong>DE-9654 — Solution 1 — yearly extracts (~5 runs)</strong></p>
+<p><strong>Problem:</strong> Pre-CDC CashBalance history (~2021 onward) is missing on AWS.
+CDC <strong>player_balances</strong> starts <strong>16 Jun 2025</strong>. Prod
+<strong>dimension.cash_balance</strong> only has a short recent camera window (~2M rows).</p>
+<p><strong>Volumes (test Unity, 2026-09-09):</strong> SQL total <strong>103,767,561</strong>;
+pre-Jul <strong>42,706,989</strong>; pre-16 Jun <strong>41,539,433</strong>. Table is a
+<strong>HEAP</strong> (~2.7 GB, no indexes). Yearly extract ≈ <strong>5</strong> Glue runs (peak year ~2024 ≈ <strong>20.7M</strong> rows; peak month
+<strong>3,188,671</strong>).</p>
+<p><strong>Write path:</strong> <strong>year-by-year to Redshift</strong> — for each year
+finish SQL→S3 → S3→Iceberg → Iceberg→Redshift (MERGE that year slice only),
+then the next year. Camera only after all five years.</p>
+<p><strong>Jobs / artefacts per hop (researched):</strong></p>
+<ul>
+  <li><strong>SQL→S3:</strong> EXISTING <strong>sql-server-extraction</strong>
+    (dev / prod verified). Lands yearly parquet under
+    <strong>s3://raw-dp-{env}-…/sql-server-extraction/CashBalance/segment=&lt;year&gt;/</strong>
+    (CashBalance prefix not created yet — expected before first run).</li>
+  <li><strong>S3→Iceberg:</strong> EXISTING <strong>arrange-parquet-processing</strong>
+    + <strong>NEW</strong> mapping JSON
+    <strong>cash_balance_legacy.json</strong>
+    (clone shape from sibling <strong>self_exclusion.json</strong>) → Iceberg
+    <strong>dimension_cash_balance_legacy</strong>
+    (<strong>upsert_nocheck</strong>, PK <strong>player_bk, balance_date</strong>).
+    Sibling legacy table <strong>dimension_self_exclusion_legacy</strong>
+    already exists in DEV and prod.</li>
+  <li><strong>Iceberg→Redshift:</strong> EXISTING
+    <strong>uk_digital_dimension_cash_balance</strong> + <strong>NEW</strong>
+    initial_load tip (self_exclusion pattern) — MERGE year slice only
+    where <strong>balance_date &lt; cutoff</strong>. Dim timeout today
+    <strong>120 min</strong>.</li>
+  <li><strong>Camera (after all years):</strong> same dim job BAU path from
+    <strong>player_balances</strong> for ≥ cutoff (DE-9554 path).</li>
+</ul>
+<p><strong>SQL extract guardrails (mandatory):</strong>
+<strong>partition_column=BalanceDate</strong>;
+<strong>partition_column_type=date</strong>;
+<strong>num_partitions=1</strong> (mandatory baseline for HEAP);
+<strong>fetch_size=100000</strong>;
+<strong>serial execution only</strong> (no parallel year slices);
+<strong>NOLOCK</strong> for historic read.
+Missing/mis-set partition config can cause date fan-out and HEAP stress.</p>
+<p><strong>Research done:</strong> live Glue get-job for extract / arrange / cash_balance dim
+(DEV+prod); sibling legacy Iceberg pattern proved; SQL volumes + HEAP confirmed;
+raw S3 bases verified; CashBalance segment prefixes absent (expected);
+compare today needs PK <strong>player_bk, balance_date</strong>.</p>
+<p><strong>Still to do (build / ops after decisions):</strong></p>
+<ul>
+  <li>Add <strong>cash_balance_legacy.json</strong> in migration-config and Jenkins-apply.</li>
+  <li>Tip <strong>uk_digital_dimension_cash_balance</strong> for year-slice initial_load MERGE.</li>
+  <li>DEV proof = <strong>2024</strong> full pipe first, then remaining years serial.</li>
+  <li>Camera ≥2× after all years; validate; then prod with permission.</li>
+</ul>
+<p><strong>Why not extract-all-then-MERGE-once?</strong> Worse resume; one 42.7M MERGE
+risks the dim’s 120&nbsp;min timeout; Solution 1 validates each year end-to-end
+before continuing.</p>
+<p><strong>Alternative:</strong> Solution 2 = one extract + one full MERGE if BAU allows.</p>
+<p><strong>Open with Andrew:</strong> cutoff (Jul 1 vs 16 Jun); JDBC host +
+<strong>vCashBalance</strong> PlayerBK; BAU for serial yearly HEAP extracts;
+S1 vs S2; DE-9554 camera tip still good before seed; OK to bump dim timeout if needed.</p>
+</div>
+
+<div class="jira-paste">
+<p>Hi <strong>Andrew</strong>,</p>
+<p>Re <strong>DE-9654</strong> — researched path is EXISTING
+<strong>sql-server-extraction</strong> → EXISTING
+<strong>arrange-parquet-processing</strong> + NEW
+<strong>cash_balance_legacy.json</strong> → EXISTING
+<strong>uk_digital_dimension_cash_balance</strong> with a NEW initial-load tip
+(year-slice MERGE), then camera. Solution 1 = year-by-year through Redshift
+(~5 years, serial, <strong>num_partitions=1</strong>). Solution 2 remains one-shot.
+Please confirm cutoff, JDBC / <strong>vCashBalance</strong> PlayerBK, BAU, and S1 vs S2.</p>
+<p>https://betfred.atlassian.net/browse/DE-9654</p>
+</div>
+
+<footer>Solution 1 · yearly ~5 runs · 2026-09-09</footer>
+</div>
+</body>
+</html>

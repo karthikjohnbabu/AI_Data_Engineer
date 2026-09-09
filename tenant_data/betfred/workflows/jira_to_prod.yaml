@@ -1,0 +1,25 @@
+name: jira_to_prod
+description: Betfred checklist — run one stage at a time from the dashboard (tenant secrets).
+stages:
+  - triage
+  - investigate
+  - plan
+  - code
+  - test
+  - id: deploy_dev
+    type: deploy
+    environment: dev
+  - id: validate_dev
+    type: validate
+  - create_pr
+  - review_pr
+  - human_approval
+  - merge
+  - id: deploy_prod
+    type: deploy
+    environment: prod
+  - id: validate_prod
+    type: validate
+  - update_ticket
+  - update_memory
+  - notify

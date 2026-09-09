@@ -1,0 +1,8 @@
+id: prod-cleanup-four-params-only
+name: ">- Prod dimension reload via prod-redshift_cleanup_tables — set only four parameters; delete/drop/truncate flags stay at"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: true
+  message: ">- Prod dimension reload via prod-redshift_cleanup_tables — set only four parameters; delete/drop/truncate flags stay at"
+guidance_file: guidance/prod-cleanup-four-params-only.md

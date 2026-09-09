@@ -1,0 +1,242 @@
+tenant_id: betfred
+note: >
+  Target → source lineage for UK Digital dimensions (from Jira fix packs).
+  Read right-to-left: gold Redshift dim ← Iceberg curated tables ← raw feeds.
+view: target_to_source
+layers:
+  - id: gold
+    label: Gold (Redshift)
+    description: uk_digital.dimension.*
+  - id: iceberg
+    label: Iceberg curated
+    description: "{env}_dp_dwh_uk_digital.*"
+  - id: raw
+    label: Raw / source systems
+    description: DMS CDC, Playtech API, SharePoint, SQL extract
+dimensions:
+  - id: deposit_limit_history
+    jira: DE-9556
+    label: deposit_limit_history
+    gold: uk_digital.dimension.deposit_limit_history
+    glue_job: uk_digital_dimension_deposit_limit_history
+    iceberg:
+      - id: sgp_player_deposit_limit
+        label: sgp_player_deposit_limit
+        raw_from: SGP DMS CDC (franchisedb)
+      - id: sgp_deposit_limit_type
+        label: sgp_deposit_limit_type
+        raw_from: SGP DMS CDC (master / lookup)
+      - id: dim_player_enrich
+        label: dimension.player (Redshift enrich)
+        kind: gold_enrich
+        raw_from: sgp_player (Iceberg → player dim)
+  - id: session_history
+    jira: DE-9567
+    label: session_history
+    gold: uk_digital.dimension.session_history
+    glue_job: uk_digital_dimension_session_history
+    iceberg:
+      - id: bvt_action
+        label: bvt_action
+        raw_from: BVT / Sharp login-logout events (CDC)
+      - id: bvt_action_type
+        label: bvt_action_type
+        raw_from: BVT action type lookup
+      - id: sgp_player
+        label: sgp_player
+        raw_from: SGP DMS CDC (player)
+  - id: vip_hospitality_costing
+    jira: DE-9570
+    label: vip_hospitality_costing
+    gold: uk_digital.dimension.vip_hospitality_costing
+    glue_job: uk_digital_dimension_vip_hospitality_costing
+    iceberg:
+      - id: shpt_viphospitality_costing
+        label: shpt_viphospitality_costing
+        raw_from: SharePoint VIP hospitality export
+      - id: dim_player_vip
+        label: dimension.player (Redshift enrich)
+        kind: gold_enrich
+        raw_from: sgp_player
+  - id: casino_pending_bonus
+    jira: DE-9549
+    label: casino_pending_bonus
+    gold: uk_digital.dimension.casino_pending_bonus
+    glue_job: uk_digital_dimension_casino_pending_bonus
+    iceberg:
+      - id: ptcasino_der_bonus_actions
+        label: ptcasino_der_bonus_actions
+        raw_from: Playtech report API (DER bonus actions)
+      - id: ptcasino_reporting_player_bonus_information
+        label: ptcasino_reporting_player_bonus_information
+        raw_from: Playtech report API (player bonus lifecycle)
+  - id: cash_balance
+    jira: DE-9654
+    label: cash_balance / player_balances
+    gold: uk_digital.dimension.cash_balance
+    glue_job: uk_digital_dimension_cash_balance
+    iceberg:
+      - id: player_balances
+        label: player_balances (transactional Iceberg)
+        raw_from: SGP DMS CDC (player balances audit)
+      - id: sgp_player_cb
+        label: sgp_player
+        raw_from: SGP DMS CDC (player)
+      - id: cash_balance_legacy
+        label: cash_balance_legacy (historic path)
+        raw_from: SQL Server extract → S3 raw → arrange parquet
+  - id: player_customer_label_history
+    jira: DE-9655
+    label: player_customer_label_history
+    gold: uk_digital.dimension.player_customer_label_history
+    glue_job: uk_digital_dimension_player_customer_label_history
+    iceberg:
+      - id: sgp_player_customer_label
+        label: sgp_player_customer_label
+        raw_from: SGP DMS CDC (customer labels)
+  - id: timeout
+    jira: DE-9668
+    label: timeout
+    gold: uk_digital.dimension.timeout
+    glue_job: uk_digital_dimension_timeout
+    iceberg:
+      - id: sgp_player_to
+        label: sgp_player
+        raw_from: SGP DMS CDC (player)
+      - id: sgp_player_disable_reason
+        label: sgp_player_disable_reason
+        raw_from: SGP DMS CDC (disable reasons)
+      - id: silver_player_disabled_history
+        label: silver_player_disabled_history
+        raw_from: Curated disable history (from SGP CDC)
+
+# Flat graph kept for overview metrics / older UI consumers
+nodes:
+  - id: layer_gold
+    label: Gold Redshift dims
+    kind: gold
+  - id: layer_iceberg
+    label: Iceberg curated
+    kind: lake
+  - id: layer_raw
+    label: Raw / CDC / API
+    kind: source
+  - id: dim_deposit_limit_history
+    label: deposit_limit_history
+    kind: gold
+  - id: dim_session_history
+    label: session_history
+    kind: gold
+  - id: dim_vip_hospitality_costing
+    label: vip_hospitality_costing
+    kind: gold
+  - id: dim_casino_pending_bonus
+    label: casino_pending_bonus
+    kind: gold
+  - id: dim_cash_balance
+    label: cash_balance
+    kind: gold
+  - id: dim_player_customer_label_history
+    label: player_customer_label_history
+    kind: gold
+  - id: ice_sgp_player_deposit_limit
+    label: sgp_player_deposit_limit
+    kind: lake
+  - id: ice_sgp_deposit_limit_type
+    label: sgp_deposit_limit_type
+    kind: lake
+  - id: ice_bvt_action
+    label: bvt_action
+    kind: lake
+  - id: ice_bvt_action_type
+    label: bvt_action_type
+    kind: lake
+  - id: ice_sgp_player
+    label: sgp_player
+    kind: lake
+  - id: ice_shpt_viphospitality_costing
+    label: shpt_viphospitality_costing
+    kind: lake
+  - id: ice_ptcasino_der_bonus_actions
+    label: ptcasino_der_bonus_actions
+    kind: lake
+  - id: ice_ptcasino_reporting_player_bonus_information
+    label: ptcasino_reporting_player_bonus_information
+    kind: lake
+  - id: ice_player_balances
+    label: player_balances
+    kind: lake
+  - id: ice_sgp_player_customer_label
+    label: sgp_player_customer_label
+    kind: lake
+  - id: raw_sgp_dms
+    label: SGP DMS CDC
+    kind: source
+  - id: raw_bvt
+    label: BVT / Sharp events
+    kind: source
+  - id: raw_sharepoint
+    label: SharePoint export
+    kind: source
+  - id: raw_playtech_api
+    label: Playtech report API
+    kind: source
+  - id: raw_sql_extract
+    label: SQL Server → S3 raw
+    kind: source
+edges:
+  # deposit_limit_history
+  - from: ice_sgp_player_deposit_limit
+    to: dim_deposit_limit_history
+  - from: ice_sgp_deposit_limit_type
+    to: dim_deposit_limit_history
+  - from: raw_sgp_dms
+    to: ice_sgp_player_deposit_limit
+  - from: raw_sgp_dms
+    to: ice_sgp_deposit_limit_type
+  # session_history
+  - from: ice_bvt_action
+    to: dim_session_history
+  - from: ice_bvt_action_type
+    to: dim_session_history
+  - from: ice_sgp_player
+    to: dim_session_history
+  - from: raw_bvt
+    to: ice_bvt_action
+  - from: raw_bvt
+    to: ice_bvt_action_type
+  - from: raw_sgp_dms
+    to: ice_sgp_player
+  # vip
+  - from: ice_shpt_viphospitality_costing
+    to: dim_vip_hospitality_costing
+  - from: raw_sharepoint
+    to: ice_shpt_viphospitality_costing
+  # casino pending bonus
+  - from: ice_ptcasino_der_bonus_actions
+    to: dim_casino_pending_bonus
+  - from: ice_ptcasino_reporting_player_bonus_information
+    to: dim_casino_pending_bonus
+  - from: raw_playtech_api
+    to: ice_ptcasino_der_bonus_actions
+  - from: raw_playtech_api
+    to: ice_ptcasino_reporting_player_bonus_information
+  # cash balance
+  - from: ice_player_balances
+    to: dim_cash_balance
+  - from: ice_sgp_player
+    to: dim_cash_balance
+  - from: raw_sgp_dms
+    to: ice_player_balances
+  - from: raw_sql_extract
+    to: dim_cash_balance
+  # label history
+  - from: ice_sgp_player_customer_label
+    to: dim_player_customer_label_history
+  - from: raw_sgp_dms
+    to: ice_sgp_player_customer_label
+  # layer summary
+  - from: layer_raw
+    to: layer_iceberg
+  - from: layer_iceberg
+    to: layer_gold

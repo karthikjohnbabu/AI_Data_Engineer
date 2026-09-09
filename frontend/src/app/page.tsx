@@ -1,6 +1,7 @@
 import { MetricCard } from "@/components/common/MetricCard";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ActivityChart } from "@/components/dashboard/ActivityChart";
+import { CommandCentre } from "@/components/dashboard/CommandCentre";
 import { PitchBanner } from "@/components/dashboard/PitchBanner";
 import { PipelineStrip } from "@/components/dashboard/PipelineStrip";
 import { ResolutionChart } from "@/components/dashboard/ResolutionChart";
@@ -26,6 +27,8 @@ export default async function DashboardPage() {
       />
 
       <PitchBanner />
+
+      <CommandCentre />
 
       <section className="mb-8 rounded-xl border border-slate-700/50 bg-slate-900/40 p-5">
         <div className="mb-3 flex items-center justify-between gap-3">

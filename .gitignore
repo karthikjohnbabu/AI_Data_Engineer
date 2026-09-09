@@ -56,3 +56,9 @@ npm-debug.log*
 # Database
 *.db
 backend/data/agent.db
+
+# Tenant secrets (never commit). Examples stay in git as secrets.example.yaml
+tenant_data/**/secrets.local.yaml
+tenant_data/**/secrets.local.yml
+tenant_data/**/data/**
+!tenant_data/**/data/.gitkeep

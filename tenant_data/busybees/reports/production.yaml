@@ -1,0 +1,39 @@
+tenant_id: busybees
+note: Sample Power BI reports for BusyBees nursery analytics.
+powerbi:
+  - id: nursery_attendance
+    name: Nursery attendance
+    workspace: BusyBees BI
+    dataset: nursery_gold
+    type: dashboard
+    status: published
+    owner: Operations
+    description: Daily attendance by room from attendance_by_room.
+    pages:
+      - Today
+      - Trends
+  - id: room_occupancy
+    name: Room occupancy SCD2
+    workspace: BusyBees BI
+    dataset: nursery_gold
+    type: report
+    status: published
+    owner: Capacity planning
+    description: Occupancy history from room_occupancy_history.
+    pages:
+      - Current
+      - History
+windows:
+  - id: 2026-09
+    label: September 2026
+    status: open
+checks:
+  - id: bb_attendance
+    name: Attendance fact freshness
+    status: pass
+    ticket: BB-101
+  - id: bb_occupancy
+    name: Occupancy SCD2 parity
+    status: in_progress
+    ticket: BB-118
+last_run: "2026-09-09T18:00:00Z"

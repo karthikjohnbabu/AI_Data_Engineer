@@ -1,0 +1,21 @@
+messages:
+- role: user
+  content: How should Power BI bind to session_history?
+  at: '2026-09-09T19:17:30.705360+00:00'
+- role: assistant
+  content: 'Report development: bind Power BI to gold dims/facts only, never raw.
+    Use BK columns for relationships; keep measures in a measures table. Open **Reports**
+    for sample workspaces. Suggestions for DAX naming can be saved without changing
+    nav.'
+  at: '2026-09-09T19:17:30.705360+00:00'
+- role: user
+  content: Tell me about lineage modelling
+  at: '2026-09-09T19:18:14.936042+00:00'
+- role: assistant
+  content: 'For **betfred**, model gold dims as target←Iceberg←raw. Known dims: deposit_limit_history,
+    session_history, vip_hospitality_costing, casino_pending_bonus, cash_balance /
+    player_balances, player_customer_label_history. Prefer LEFT JOIN for enrich; treat
+    INNER JOIN as silent row loss. I can draft a rule under memory/suggestions — I
+    will not rewrite top-level menus.'
+  at: '2026-09-09T19:18:14.936042+00:00'
+updatedAt: '2026-09-09T19:18:14.936042+00:00'

@@ -1,0 +1,21 @@
+phases:
+  place2:
+    status: success
+    lastRunAt: '2026-09-09T19:17:30.687235+00:00'
+    runId: 085cdf0d-587
+    message: Ran workflow stage `validate_dev` (completed)
+  triage:
+    status: success
+    lastRunAt: '2026-09-09T19:18:01.719215+00:00'
+    runId: 18546c16-742
+    message: Ran workflow stage `triage` (completed)
+  place1:
+    status: done
+    lastRunAt: '2026-09-09T19:17:30.687235+00:00'
+    message: Auto-marked before later phase
+  implement:
+    status: done
+    lastRunAt: '2026-09-09T19:17:30.687235+00:00'
+    message: Auto-marked before later phase
+currentPhase: triage
+updatedAt: '2026-09-09T19:18:01.719215+00:00'

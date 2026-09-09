@@ -1,0 +1,8 @@
+id: migration-compare-env-pair
+name: ">- Before any SQL Server vs Redshift/Athena compare, state the environment pair (test→DEV vs test→prod RS) and ask if un"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: ">- Before any SQL Server vs Redshift/Athena compare, state the environment pair (test→DEV vs test→prod RS) and ask if un"
+guidance_file: guidance/migration-compare-env-pair.md

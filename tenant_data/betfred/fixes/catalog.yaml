@@ -1,0 +1,118 @@
+tenant_id: betfred
+note: Dimension fix packs imported for UI — no warehouse dumps.
+fixes:
+- id: de_9556_deposit_limit_history
+  jira: DE-9556
+  dimension: deposit limit history
+  dimension_key: deposit_limit_history
+  status: done
+  pipeline_stage: closed
+  has_proposed_solution: false
+  has_triage: false
+  path: fixes/de_9556_deposit_limit_history
+  artefacts:
+  - README.md
+  - dev_redshift_and_watermark_reset.md
+  - devils_advocate_unit_test.md
+  - final_prod_results.md
+  - glue_patch.md
+  - notes.md
+  - pr.md
+  - prod_redshift_and_watermark_reset.md
+  - sql_patch.md
+  - what_fixed_line_nos.md
+- id: de_9567_session_history
+  jira: DE-9567
+  dimension: session history
+  dimension_key: session_history
+  status: in_progress
+  pipeline_stage: triage
+  has_proposed_solution: false
+  has_triage: false
+  path: fixes/de_9567_session_history
+  artefacts:
+  - README.md
+  - ai_code_review.md
+  - dev_redshift_and_watermark_reset.md
+  - glue_patch.md
+  - pr.md
+  - sql_vs_gold_keys.md
+  - what_fixed_line_nos.md
+- id: de_9570_vip_hospitality_costing
+  jira: DE-9570
+  dimension: vip hospitality costing
+  dimension_key: vip_hospitality_costing
+  status: done
+  pipeline_stage: closed
+  has_proposed_solution: false
+  has_triage: false
+  path: fixes/de_9570_vip_hospitality_costing
+  artefacts:
+  - README.md
+  - ai_code_review.md
+  - delivery_checklist.md
+  - devils_advocate_unit_test.md
+  - final_prod_results.md
+  - pr.md
+  - what_fixed_line_nos.md
+- id: de_9668_time_out
+  jira: DE-9668
+  dimension: time out
+  dimension_key: time_out
+  status: done
+  pipeline_stage: closed
+  has_proposed_solution: false
+  has_triage: false
+  path: fixes/de_9668_time_out
+  artefacts:
+  - README.md
+  - glue_patch.md
+  - notes.md
+  - sql_patch.md
+- id: de_9549_casino_pending_bonus
+  jira: DE-9549
+  dimension: casino pending bonus
+  dimension_key: casino_pending_bonus
+  status: in_progress
+  pipeline_stage: phase1
+  has_proposed_solution: false
+  has_triage: true
+  path: fixes/de_9549_casino_pending_bonus
+  artefacts:
+  - delivery_checklist.md
+  - dev_redshift_and_watermark_reset.md
+  - notes.md
+  - place1_athena_template_code.md
+  - triage_validation.html
+  - triage_validation.md
+  - what_fixed_line_nos.md
+- id: de_9654_cash_balance_historic
+  jira: DE-9654
+  dimension: cash balance historic
+  dimension_key: cash_balance_historic
+  status: in_progress
+  pipeline_stage: solution
+  has_proposed_solution: true
+  has_triage: true
+  path: fixes/de_9654_cash_balance_historic
+  artefacts:
+  - delivery_checklist.md
+  - notes.md
+  - proposed_solution_1.html
+  - proposed_solution_2.html
+  - proposed_solution_old.html
+  - task_da_l5_2026-09-08.md
+  - triage_validation.html
+  - triage_validation.md
+- id: de_9655_player_customer_label_history
+  jira: DE-9655
+  dimension: player customer label history
+  dimension_key: player_customer_label_history
+  status: in_progress
+  pipeline_stage: pipeline
+  has_proposed_solution: false
+  has_triage: false
+  path: fixes/de_9655_player_customer_label_history
+  artefacts:
+  - delivery_checklist.md
+  - notes.md

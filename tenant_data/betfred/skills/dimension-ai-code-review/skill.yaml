@@ -1,0 +1,12 @@
+id: dimension-ai-code-review
+name: "dimension-ai-code-review"
+version: 1.0.0
+description: ">- Local PR-style AI Code Review for Glue dimension/fact changes, mirroring Jenkins dp-ai-code-review (data-platform-ai-review @ v0.2.0): CLAUDE.md rubric, agentic sibling checks, same comment shape as Bitbucket. Use when the user asks for AI Code Review, simulate PR bot, /ai-review, or dimension-ai-code-review before raising a PR."
+triggers:
+  tenant:
+    - betfred
+capabilities:
+  - tenant_skill
+risk: medium
+handler:
+  module: SKILL.md

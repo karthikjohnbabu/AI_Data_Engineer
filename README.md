@@ -61,14 +61,27 @@ Agents call interfaces (`GitProvider`, `TicketProvider`, `MessagingProvider`, `L
 
 ```
 tenant_data/
-  newton/
+  newton/             # Newton product (Infominds IAM user newton)
+  betfred/            # Betfred skills/rules only — secrets.local.yaml for UI tests
   example_customer/
   busybees/
 ```
 
+Each tenant has `skills/`, `rules/`, `workflows/`, `lineage/`, `reports/`. Secrets stay in gitignored `secrets.local.yaml`. Future MySQL: `tenant_data/_schema/mysql_plan.md`.
+
 ---
 
 ## Local development
+
+Working URLs:
+
+- UI: http://localhost:3000
+- Admin: http://localhost:3000/admin
+- Betfred portal: http://localhost:3000/tenants/betfred
+- BusyBees portal: http://localhost:3000/tenants/busybees
+- API: http://localhost:8000
+- Health: http://localhost:8000/api/health
+- OpenAPI: http://localhost:8000/docs
 
 ```bash
 cp .env.example .env
@@ -88,7 +101,13 @@ Useful APIs:
 - `GET /api/health` — includes `deploymentMode`
 - `GET /api/tenants`
 - `GET /api/tenants/context` — header `X-Tenant-Id: example_customer`
-- `POST /api/tenants/workflows/run`
+- `GET /api/tenants/admin-overview` — cross-tenant skills/rules/fixes counts
+- `GET /api/tenants/client-dashboard` — portal metrics + pipeline + lineage
+- `GET /api/tenants/fixes` / `.../fixes/{id}` / `.../artefacts/{name}`
+- `GET /api/tenants/workspace` — skills, rules, lineage, production reports, secret *status*
+- `POST /api/tenants/workflows/run-stage` — one pipeline phase (uses tenant secrets)
+- `GET /api/tenants/lineage`
+- `GET /api/tenants/reports/production`
 
 Docker:
 

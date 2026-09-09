@@ -1,0 +1,67 @@
+tenant_id: busybees
+note: >
+  Demo target → source lineage for nursery analytics dims.
+view: target_to_source
+layers:
+  - id: gold
+    label: Gold warehouse
+  - id: iceberg
+    label: Curated / silver
+  - id: raw
+    label: Raw intake
+dimensions:
+  - id: attendance_fact
+    jira: BB-101
+    label: attendance_by_room
+    gold: analytics.fact.attendance_by_room
+    iceberg:
+      - id: nursery_attendance_events
+        label: nursery_attendance_events
+        raw_from: Parent portal SFTP (daily attendance CSV)
+      - id: room_dim
+        label: room_dim
+        raw_from: Nursery ops API rooms feed
+  - id: room_occupancy_scd2
+    jira: BB-118
+    label: room_occupancy_history
+    gold: analytics.dimension.room_occupancy_history
+    iceberg:
+      - id: room_status_snapshots
+        label: room_status_snapshots
+        raw_from: Occupancy IoT / check-in API
+
+nodes:
+  - id: gold_attendance
+    label: attendance_by_room
+    kind: gold
+  - id: gold_occupancy
+    label: room_occupancy_history
+    kind: gold
+  - id: ice_attendance
+    label: nursery_attendance_events
+    kind: lake
+  - id: ice_rooms
+    label: room_dim
+    kind: lake
+  - id: ice_occupancy
+    label: room_status_snapshots
+    kind: lake
+  - id: raw_sftp
+    label: Parent portal SFTP
+    kind: source
+  - id: raw_ops_api
+    label: Nursery ops API
+    kind: source
+edges:
+  - from: ice_attendance
+    to: gold_attendance
+  - from: ice_rooms
+    to: gold_attendance
+  - from: raw_sftp
+    to: ice_attendance
+  - from: raw_ops_api
+    to: ice_rooms
+  - from: ice_occupancy
+    to: gold_occupancy
+  - from: raw_ops_api
+    to: ice_occupancy

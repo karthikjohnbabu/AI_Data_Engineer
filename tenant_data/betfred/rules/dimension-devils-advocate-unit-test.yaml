@@ -1,0 +1,8 @@
+id: dimension-devils-advocate-unit-test
+name: ">- Devil’s-advocate gate — L0–L5 (L5 artefact audit built-in); Task DA after every step; full DA before PR; validation +"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: ">- Devil’s-advocate gate — L0–L5 (L5 artefact audit built-in); Task DA after every step; full DA before PR; validation +"
+guidance_file: guidance/dimension-devils-advocate-unit-test.md

@@ -1,0 +1,8 @@
+id: pre-deploy-quality-gate
+name: "Run data-jobs lint/format/type checks before merge to dev or deploy"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: "Run data-jobs lint/format/type checks before merge to dev or deploy"
+guidance_file: guidance/pre-deploy-quality-gate.md

@@ -9,11 +9,13 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=str(_REPO_ROOT / ".env"), extra="ignore"
+    )
 
     # API
     api_key: str = ""
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = "http://127.0.0.1:3000,http://localhost:3000"
     credentials_secret_key: str = ""
 
     # Newton deployment mode (no Cursor runtime dependency)

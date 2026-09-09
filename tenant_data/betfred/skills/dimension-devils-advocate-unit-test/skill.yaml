@@ -1,0 +1,12 @@
+id: dimension-devils-advocate-unit-test
+name: "dimension-devils-advocate-unit-test"
+version: 1.0.0
+description: ">- Unit-style gate for Glue dim/fact fixes: Jira proof, L0–L4, L5 artefact audit, validation with BK overlap and count-mismatch justification. Task DA + L5 artefact audit after every completed step; full DA before PR. Use when devil's advocate, unit test, bot-proof, PR-ready, or after any ticket task."
+triggers:
+  tenant:
+    - betfred
+capabilities:
+  - tenant_skill
+risk: medium
+handler:
+  module: SKILL.md

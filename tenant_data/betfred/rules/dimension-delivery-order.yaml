@@ -1,0 +1,8 @@
+id: dimension-delivery-order
+name: ">- Three test places + delivery order — Athena Iceberg pre-commit, then test→DEV RS, then test→prod RS after prod deploy"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: ">- Three test places + delivery order — Athena Iceberg pre-commit, then test→DEV RS, then test→prod RS after prod deploy"
+guidance_file: guidance/dimension-delivery-order.md

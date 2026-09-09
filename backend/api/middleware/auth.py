@@ -11,6 +11,10 @@ PUBLIC_PATHS = {"/api/health", "/api/auth/verify", "/docs", "/openapi.json", "/r
 
 class APIKeyMiddleware(BaseHTTPMiddleware):
   async def dispatch(self, request: Request, call_next):
+    # CORS preflight must not require an API key.
+    if request.method == "OPTIONS":
+      return await call_next(request)
+
     settings = get_settings()
     if not settings.auth_enabled:
       return await call_next(request)
@@ -21,6 +25,8 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
 
     api_key = request.headers.get("X-API-Key", "")
     if api_key != settings.api_key:
-      return JSONResponse(status_code=401, content={"detail": "Invalid or missing API key"})
+      return JSONResponse(
+        status_code=401, content={"detail": "Invalid or missing API key"}
+      )
 
     return await call_next(request)

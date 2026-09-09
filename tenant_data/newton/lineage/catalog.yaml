@@ -1,0 +1,17 @@
+tenant_id: newton
+note: Newton product lineage (platform services), not customer warehouses.
+nodes:
+  - id: api
+    label: Newton API
+    kind: service
+  - id: ui
+    label: Newton UI
+    kind: service
+  - id: tenant_store
+    label: tenant_data filesystem
+    kind: store
+edges:
+  - from: ui
+    to: api
+  - from: api
+    to: tenant_store

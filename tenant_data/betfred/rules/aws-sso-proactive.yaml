@@ -1,0 +1,8 @@
+id: aws-sso-proactive
+name: "Proactively refresh AWS SSO; prefer prod for Bedrock KB discovery"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: "Proactively refresh AWS SSO; prefer prod for Bedrock KB discovery"
+guidance_file: guidance/aws-sso-proactive.md

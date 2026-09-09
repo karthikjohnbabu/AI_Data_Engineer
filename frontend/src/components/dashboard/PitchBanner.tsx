@@ -27,10 +27,22 @@ export function PitchBanner() {
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link
-            href="/tickets"
+            href="/admin"
             className="inline-flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-sky-400"
           >
-            Start from a ticket <ArrowRight className="h-4 w-4" />
+            Admin tenants <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/tenants/betfred"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-900/60 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-slate-500 hover:bg-slate-800"
+          >
+            Betfred portal
+          </Link>
+          <Link
+            href="/tenants/busybees"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-900/60 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-slate-500 hover:bg-slate-800"
+          >
+            BusyBees portal
           </Link>
           <Link
             href="/approvals"

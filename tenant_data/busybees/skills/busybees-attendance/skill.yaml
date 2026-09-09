@@ -1,0 +1,12 @@
+id: busybees-attendance
+name: Attendance facts
+version: 1.0.0
+description: Daily attendance reconcile from parent portal SFTP into warehouse facts.
+triggers:
+  tenant:
+    - busybees
+capabilities:
+  - tenant_skill
+risk: low
+handler:
+  module: SKILL.md

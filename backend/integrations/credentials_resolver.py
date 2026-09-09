@@ -4,12 +4,25 @@ from database.platform_repository import get_credentials
 from security.crypto import decrypt_credential_data
 
 
-def get_service_credentials(service: str) -> dict:
-    """Return decrypted credentials for a service (DB first, then env fallback)."""
+def get_service_credentials(service: str, tenant_id: str | None = None) -> dict:
+    """Return credentials for the active tenant only (no cross-tenant fallback)."""
+    from config.settings import get_settings
+    from tenants.context import get_tenant_context
+    from tenants.secrets import load_tenant_secrets
+
+    ctx = get_tenant_context()
+    tid = tenant_id or (ctx.tenant_id if ctx else None) or get_settings().newton_default_tenant_id
+    tenant_secrets = load_tenant_secrets(tid)
+    payload = tenant_secrets.get(service)
+    if isinstance(payload, dict) and any(str(v).strip() for v in payload.values() if v is not None):
+        return payload
+
     stored = get_credentials(service)
-    if stored:
+    if stored and tid == "newton":
         return decrypt_credential_data(stored)
-    return _env_fallback(service)
+    if tid == "newton":
+        return _env_fallback(service)
+    return {}
 
 
 def _env_fallback(service: str) -> dict:
@@ -59,7 +72,10 @@ def credentials_configured(service: str) -> bool:
     if service == "bitbucket":
         return bool(creds.get("workspace") and creds.get("repo") and creds.get("appPassword"))
     if service == "aws":
-        return bool(creds.get("accessKeyId") and creds.get("secretAccessKey"))
+        return bool(
+            (creds.get("accessKeyId") and creds.get("secretAccessKey"))
+            or creds.get("profile")
+        )
     if service == "slack":
         return bool(creds.get("webhookUrl") or creds.get("botToken"))
     if service == "teams":

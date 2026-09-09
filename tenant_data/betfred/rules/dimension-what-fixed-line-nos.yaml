@@ -1,0 +1,8 @@
+id: dimension-what-fixed-line-nos
+name: ">- After every Glue dim/fact edit (even small), refresh fixes/{dim}/what_fixed_line_nos.md with real line numbers per fi"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: ">- After every Glue dim/fact edit (even small), refresh fixes/{dim}/what_fixed_line_nos.md with real line numbers per fi"
+guidance_file: guidance/dimension-what-fixed-line-nos.md

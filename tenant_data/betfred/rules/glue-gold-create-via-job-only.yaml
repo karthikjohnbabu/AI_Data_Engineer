@@ -1,0 +1,8 @@
+id: glue-gold-create-via-job-only
+name: "Gold Redshift CREATE only via Glue job — never agent/Data API shell"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: "Gold Redshift CREATE only via Glue job — never agent/Data API shell"
+guidance_file: guidance/glue-gold-create-via-job-only.md

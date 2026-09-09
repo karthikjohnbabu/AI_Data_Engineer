@@ -46,6 +46,12 @@ class MemoryConfig(BaseModel):
     index_name: str = ""
 
 
+class StorageConfig(BaseModel):
+    backend: str = "filesystem"  # filesystem now; mysql later
+    mysql_database: str = ""
+    mysql_table_prefix: str = ""
+
+
 class SecurityConfig(BaseModel):
     require_human_approval_for: list[str] = Field(
         default_factory=lambda: ["prod_deploy", "destructive_sql", "iam_change"]
@@ -68,6 +74,7 @@ class TenantConfig(BaseModel):
     skills: SkillConfig = Field(default_factory=SkillConfig)
     rules: RuleConfig = Field(default_factory=RuleConfig)
     memory: MemoryConfig = Field(default_factory=MemoryConfig)
+    storage: StorageConfig = Field(default_factory=StorageConfig)
     security: SecurityConfig = Field(default_factory=SecurityConfig)
     notifications: NotificationConfig = Field(default_factory=NotificationConfig)
     extras: dict[str, Any] = Field(default_factory=dict)

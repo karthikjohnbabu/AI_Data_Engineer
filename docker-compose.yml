@@ -10,8 +10,10 @@ services:
       - GIT_PROVIDER=mock
       - LLM_PROVIDER=local
       - CORS_ORIGINS=http://localhost:3000
+      - TENANT_DATA_DIR=/app/tenant_data
     volumes:
       - ./backend/data:/app/backend/data
+      - ./tenant_data:/app/tenant_data
 
   frontend:
     build:

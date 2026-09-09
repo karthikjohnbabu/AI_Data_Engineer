@@ -1,6 +1,7 @@
 import { MetricCard } from "@/components/common/MetricCard";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
+import { ProductionReportsPanel } from "@/components/reports/ProductionReportsPanel";
 import { getReportSummary } from "@/services/reports";
 import { formatCurrency } from "@/utils";
 import Link from "next/link";
@@ -12,8 +13,10 @@ export default async function ReportsPage() {
     <div>
       <PageHeader
         title="Reports"
-        description="Agent performance and platform analytics"
+        description="Agent performance and tenant production reports"
       />
+
+      <ProductionReportsPanel />
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Agent Runs" value={report.agentRuns} />

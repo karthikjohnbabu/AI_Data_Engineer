@@ -1,0 +1,12 @@
+id: dimension-watermark-reset
+name: "dimension-watermark-reset"
+version: 1.0.0
+description: ">- Read or reset DynamoDB incremental watermarks for UK Digital Glue dimension jobs in ETLJobControl; DEV reload gate (BACKUP then DROP gold — Glue recreates); PROD reload via prod-redshift_cleanup_tables or DROP + epoch watermark. Always ask permission before mutations. Use when the user asks to reset watermark, drop Redshift gold, full reload a dimension in DEV or PROD, or run redshift_cleanup_t"
+triggers:
+  tenant:
+    - betfred
+capabilities:
+  - tenant_skill
+risk: medium
+handler:
+  module: SKILL.md

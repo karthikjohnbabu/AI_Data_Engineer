@@ -1,0 +1,36 @@
+---
+description: >-
+  Newton repo: never mix tenant credentials. Newton tenant uses Infominds IAM
+  user newton only; Betfred keys stay in the betfred tenant secrets file
+alwaysApply: true
+---
+
+# Newton — tenant credentials (HARD RULE)
+
+When working in **`Newton/`**:
+
+## Newton tenant (`newton`)
+
+Use only Newton / Infominds identity:
+
+- IAM user `newton`, account from `tenant_data/newton/secrets.local.yaml` or Newton `.env`
+- GitHub for this product repo
+- **Never** `AWS_PROFILE=dev|prod` Betfred SSO, Betfred `.env`, Unity SQL, or Bitbucket app passwords
+
+## Betfred tenant (`betfred`) — explicit exception
+
+Frontend phase testing **may** use `tenant_data/betfred/secrets.local.yaml` (gitignored). That file is **only** valid when `X-Tenant-Id` / tenant switcher is `betfred`.
+
+Do **not** copy those values into Newton `.env` or the `newton` tenant file.
+
+## Other tenants
+
+Each customer gets `tenant_data/<id>/secrets.local.yaml`. No cross-tenant fallback.
+
+## Agent behaviour
+
+1. Resolve tenant first.
+2. Load that tenant's secrets only.
+3. Empty Betfred secrets → do not silently use Infominds AWS.
+4. Empty Newton secrets → do not silently use Betfred SSO.
+5. Keep this file in **both** `Cursor/.cursor/rules/` and `Newton/.cursor/rules/`.

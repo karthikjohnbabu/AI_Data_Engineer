@@ -1,0 +1,8 @@
+id: configure-spark-shared
+name: "Use shared configure_spark for Glue dims/facts; no local SparkConf"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: "Use shared configure_spark for Glue dims/facts; no local SparkConf"
+guidance_file: guidance/configure-spark-shared.md

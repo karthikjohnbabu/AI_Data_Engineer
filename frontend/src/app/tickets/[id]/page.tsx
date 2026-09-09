@@ -183,7 +183,7 @@ function OverviewTab({ ticket }: { ticket: TicketDetail }) {
         <ExecutionTimeline steps={ticket.timeline} />
       </div>
       <div className="space-y-6 lg:col-span-2">
-        <PhaseChecklist ticketStatus={ticket.status} />
+        <PhaseChecklist ticketStatus={ticket.status} ticketId={ticket.id} />
         <Panel title="Root Cause">
           <p className="text-sm leading-relaxed text-slate-300">
             {ticket.rootCause}

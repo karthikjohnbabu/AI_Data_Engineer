@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Building2,
   BarChart3,
   Brain,
   Cloud,
   GitBranch,
   GitPullRequest,
   LayoutDashboard,
+  Network,
   Play,
   Plug,
   Rocket,
@@ -22,6 +24,9 @@ import { cn } from "@/utils";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin", label: "Admin", icon: ShieldCheck },
+  { href: "/tenants/betfred", label: "Betfred", icon: Building2 },
+  { href: "/tenants/busybees", label: "BusyBees", icon: Building2 },
   { href: "/triage", label: "Triage", icon: ScanSearch },
   { href: "/tickets", label: "Tickets", icon: Ticket },
   { href: "/runs", label: "Runs", icon: Play },
@@ -32,6 +37,7 @@ const navItems = [
   { href: "/workflows", label: "Workflows", icon: GitBranch },
   { href: "/skills", label: "Skills", icon: Wrench },
   { href: "/memory", label: "Memory", icon: Brain },
+  { href: "/lineage", label: "Lineage", icon: Network },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/integrations", label: "Integrations", icon: Plug },
 ];

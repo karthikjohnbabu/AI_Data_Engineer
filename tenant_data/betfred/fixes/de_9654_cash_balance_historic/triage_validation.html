@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>DE-9654 — CashBalance historic (triage validation)</title>
+<style>
+  :root {
+    --ink:#101828; --muted:#475467; --border:#d0d5dd; --bg:#f8fafc; --card:#fff;
+    --blue:#175cd3; --blue-bg:#eff8ff; --ok:#067647; --ok-bg:#ecfdf3;
+    --warn:#b54708; --warn-bg:#fffaeb; --bad:#b42318; --bad-bg:#fef3f2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Calibri,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.45}
+  .wrap{max-width:1040px;margin:0 auto;padding:24px 18px 80px}
+  h1{font-size:1.55rem;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:.92rem;margin:0 0 16px}
+  h2{font-size:1.14rem;margin:1.8rem 0 .55rem;padding-bottom:5px;border-bottom:2px solid var(--blue)}
+  h3{font-size:1rem;margin:1.1rem 0 .35rem;color:#344054}
+  p,li{font-size:.92rem;color:#344054}
+  .banner{background:var(--blue-bg);border:1px solid #b2ddff;border-left:5px solid var(--blue);border-radius:8px;padding:12px 14px;margin-bottom:14px}
+  .verdict{background:var(--ok-bg);border:1px solid #abefc6;border-left:5px solid var(--ok);border-radius:8px;padding:14px 16px;margin:12px 0 18px}
+  .box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin:10px 0}
+  .ok{background:var(--ok-bg);border-color:#abefc6}
+  .warn{background:var(--warn-bg);border-color:#fec84b}
+  .bad{background:var(--bad-bg);border-color:#fecdca}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;font-size:.8rem;margin:8px 0 14px;background:var(--card)}
+  th,td{border:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:#f2f4f7}
+  code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.84em}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700}
+  .pill-ok{background:#abefc6;color:#067647}
+  .pill-bad{background:#fecdca;color:#b42318}
+  .pill-warn{background:#fedf89;color:#b54708}
+  .pill-info{background:#b2ddff;color:#175cd3}
+  .toc a{color:var(--blue);text-decoration:none}
+  .toc li{margin:3px 0;font-size:.88rem}
+  .mermaid{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin:10px 0;overflow-x:auto}
+  pre.ascii,pre.sql{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:12px;font-size:.72rem;overflow-x:auto;line-height:1.35;white-space:pre}
+  .issue{border-left:4px solid var(--blue);padding:8px 12px;margin:12px 0;background:var(--card);border-radius:0 8px 8px 0;border:1px solid var(--border);border-left-width:4px}
+  .issue.crit{border-left-color:var(--bad)}
+  .issue.med{border-left-color:var(--warn)}
+  footer{margin-top:2rem;color:var(--muted);font-size:.8rem}
+  a{color:var(--blue)}
+  .muted{color:var(--muted);font-size:.85rem}
+</style>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({startOnLoad:true,theme:"neutral",securityLevel:"loose"});
+</script>
+</head>
+<body>
+<div class="wrap">
+
+<h1>DE-9654 — CashBalance historic (triage validation)</h1>
+<p class="sub">
+  <strong>One-stop</strong> for this ticket (MD twin: <code>triage_validation.md</code>) ·
+  narrative: <code>dimensions/in_progress/de_9654_cash_balance_historic.md</code> ·
+  related <a href="https://betfred.atlassian.net/browse/DE-9554">DE-9554</a> (Done — logic only) ·
+  sibling <a href="https://betfred.atlassian.net/browse/DE-9655">DE-9655</a> ·
+  <a href="proposed_solution.html"><strong>proposed_solution.html</strong></a> ·
+  refreshed <strong>2026-09-08</strong>
+</p>
+
+<div class="banner">
+  <a href="https://betfred.atlassian.net/browse/DE-9654">DE-9654</a>
+  · Dimension_CashBalance — Migration Historic Data ·
+  <span class="pill pill-warn">BLOCKED / FEASIBILITY</span>
+  · classification: <strong>historic-backfill / curated-gap</strong>
+  <br/>
+  Not a Glue tip-logic PR. Same family as self_exclusion / player_disabled_history / DE-9655.
+</div>
+
+<div class="verdict">
+  <strong>One-screen verdict:</strong>
+  AWS CDC cannot rebuild history before <strong>2025-06-16</strong>.
+  SQL mart has history from <strong>2021-03</strong> (~104M rows; <strong>42.7M before Jul 2025</strong>) on a <strong>HEAP</strong>.
+  <br/><br/>
+  <strong>Feasible:</strong> DynamoDB work-queue + Step Function driving
+  <code>{env}-sql-server-extraction</code> over <code>Dimension.CashBalance</code> / <code>vCashBalance</code>
+  (~52–60 months, concurrency 1), then arrange + gold — see
+  <a href="proposed_solution.html">proposed_solution.html</a>.
+  via <code>prod-sql-server-extraction</code> → merge (self_exclusion pattern) → gold validate.
+  <br/><br/>
+  <strong>Do not</strong> lead with a Sharp audit dump into Iceberg (raw already ~6.6B rows from mid-2025 alone).
+  Prefer hybrid: SQL extract for pre-CDC floor + Glue rebuild from Iceberg for ≥ 2025-06-16.
+</div>
+
+<div class="box warn">
+  <strong>Andrew’s ask answered:</strong>
+  Pre-July 2025 on-prem ≈ <strong>42.7 million</strong> rows.
+  Check indexing before extract — table is a <strong>HEAP</strong> (~2.7 GB). Chunk + off-peak.
+</div>
+
+<div class="box toc">
+  <strong>Jump</strong>
+  <ol>
+    <li><a href="#picture">Picture for anyone</a></li>
+    <li><a href="#layman">Explain like a layman</a></li>
+    <li><a href="#e2e">End-to-end flow + tables</a></li>
+    <li><a href="#counts">Live counts</a></li>
+    <li><a href="#options">Load options (feasibility)</a></li>
+    <li><a href="#ship">What to ship vs leave</a></li>
+    <li><a href="#cancannot">Can vs cannot</a></li>
+    <li><a href="#related">Related tickets — DE-9554 closed-claim</a></li>
+    <li><a href="#links">Jira links followed</a></li>
+    <li><a href="#fields">Field / grain map</a></li>
+    <li><a href="#validation">Validation log</a></li>
+    <li><a href="#blocks">What blocks Done / how to close</a></li>
+    <li><a href="#reproduce">Reproduce SQL</a></li>
+    <li><a href="#teams">Teams paste (Andrew)</a></li>
+  </ol>
+</div>
+
+<!-- PICTURE -->
+<h2 id="picture">1. Picture for anyone</h2>
+<div class="box">
+<pre style="margin:0;font-size:.9rem">
+  Player cash balance over time
+  ────●────●────────●────► calendar
+     change change  change
+     £12    £0      £40
+</pre>
+  <p><strong>Good:</strong> Redshift gold holds change-event history far enough back for reporting.</p>
+  <p><strong>Wrong today:</strong> Glue only sees Iceberg CDC from mid-June 2025; gold currently only late Aug 2026.
+  SQL mart still has years of history AWS cannot invent.</p>
+  <p><strong>This ticket:</strong> one-off historic import + documented repeatable merge.</p>
+</div>
+
+<!-- LAYMAN -->
+<h2 id="layman">2. Explain like a layman</h2>
+
+<h3>Source-pipe comparison</h3>
+<table>
+  <tr><th>Pipe</th><th>What fills it</th><th>History depth (2026-09-08)</th></tr>
+  <tr><td><strong>Legacy SQL</strong></td><td>Nightly <code>usp_CashBalanceSharp</code> → <code>Dimension.CashBalance</code></td><td><strong>2021-03 → today</strong> (~104M rows)</td></tr>
+  <tr><td><strong>AWS raw CDC</strong></td><td>DMS → Iceberg <code>petfre_franchisedb.player_balances</code></td><td><strong>2025-06-16 → today</strong> (~6.6B audit events)</td></tr>
+  <tr><td><strong>AWS gold</strong></td><td>Glue <code>uk_digital_dimension_cash_balance</code> (change-only)</td><td>~2.0M rows, <strong>2026-08-26…2026-09-01</strong> only</td></tr>
+</table>
+
+<h3>Named examples</h3>
+<div class="grid2">
+  <div class="box ok">
+    <strong>Alice (late Aug 2026)</strong><br/>
+    Balance changed after DE-9554 tip → appears in Redshift gold and SQL
+    (with known 1-day <code>BalanceDate</code> stamp offset).
+  </div>
+  <div class="box bad">
+    <strong>Bob (2023)</strong><br/>
+    In SQL <code>Dimension.CashBalance</code> only — no Iceberg CDC that old →
+    Glue cannot invent Bob’s history.
+  </div>
+</div>
+<div class="box warn">
+  <strong>Carol (2025-06-20)</strong><br/>
+  May exist in raw Iceberg (after 16 Jun) but still missing from current gold until a
+  full rebuild / watermark covers that day.
+</div>
+
+<h3>Cheat sheet</h3>
+<table>
+  <tr><th>Symptom</th><th>Usually means</th><th>Fix in Glue tip?</th></tr>
+  <tr><td>No gold rows before mid-2025</td><td>CDC / extract gap</td><td><strong>No</strong> — this ticket</td></tr>
+  <tr><td>SQL ≫ Redshift on old dates</td><td>Expected until backfill</td><td>Historic merge + reload</td></tr>
+  <tr><td>Same player, date off by 1 day vs SQL</td><td>Load-time vs event-time (DE-9554)</td><td>Document; don’t “fix” by shifting SQL</td></tr>
+  <tr><td>Extract kills SQL DWH</td><td><code>CashBalance</code> is a HEAP</td><td>Off-peak + SFN concurrency 1</td></tr>
+</table>
+
+<!-- E2E -->
+<h2 id="e2e">3. End-to-end flow + tables</h2>
+
+<h3>Tables inventory</h3>
+<table>
+  <tr><th>#</th><th>Object</th><th>Layer</th><th>Role</th><th>Glue today?</th></tr>
+  <tr><td>1</td><td>Sharp <code>player_balances_audit</code></td><td>SQL source</td><td>Feeds legacy proc</td><td>Indirect</td></tr>
+  <tr><td>2</td><td><code>Dimension.CashBalance</code></td><td>SQL mart</td><td>Historic gold (PlayerID, Balance, BalanceDate)</td><td>Extract candidate</td></tr>
+  <tr><td>3</td><td><code>Dimension.vCashBalance</code></td><td>SQL view</td><td>Adds PlayerBK for compare</td><td>Compare / extract</td></tr>
+  <tr><td>4</td><td><code>petfre_franchisedb.player_balances</code></td><td>Iceberg raw</td><td>Live audit CDC</td><td><strong>Yes — primary read</strong></td></tr>
+  <tr><td>5</td><td><code>sgp_player_balance</code></td><td>Iceberg curated</td><td>Current-balance upsert (player_bk PK)</td><td><strong>No</strong> for this dim</td></tr>
+  <tr><td>6</td><td><code>dimension.cash_balance</code></td><td>Redshift gold</td><td>Change-only history</td><td>Yes — write</td></tr>
+  <tr><td>7</td><td><code>prod-sql-server-extraction</code></td><td>Glue (etl-common)</td><td>JDBC → S3 <code>sql-server-extraction/</code></td><td>Historic path</td></tr>
+  <tr><td>8</td><td>DynamoDB ETLJobControl</td><td>Control</td><td>BAU dim/builder watermarks (JobStatusHandler)</td><td>Yes (dim)</td></tr>
+  <tr><td>8b</td><td>DynamoDB DataProcessingJobControl</td><td>Control</td><td>CDC mapping watermarks — writer <code>transactional_data_quality_mapping</code> only (same schema ≠ ETLJC)</td><td>No (not historic queue)</td></tr>
+  <tr><td>9</td><td>DynamoDB ETLHistoricBackfillControl</td><td>Control</td><td>Segment work-queue</td><td><strong>NEW — absent prod/DEV 2026-09-08</strong></td></tr>
+</table>
+
+<div class="box warn">
+  <strong>Do not confuse:</strong>
+  curated <code>sgp_player_balance</code> ≠ raw <code>player_balances</code>.
+  The dimension job reads <strong>raw</strong> only.
+</div>
+
+<div class="mermaid">
+flowchart LR
+  subgraph SQL["SQL Server"]
+    AUD["Sharp player_balances_audit"]
+    PROC["usp_CashBalanceSharp"]
+    CB["Dimension.CashBalance"]
+  end
+  subgraph AWS["AWS"]
+    CDC["Iceberg player_balances\nfrom 2025-06-16"]
+    EXT["prod-sql-server-extraction"]
+    CUR["Curated / legacy Iceberg\n(to design)"]
+    DIM["uk_digital_dimension_cash_balance"]
+    GOLD["Redshift cash_balance\n~Aug 2026 only today"]
+  end
+  AUD --> PROC --> CB
+  AUD -.->|"DMS CDC"| CDC
+  CB -->|"DE-9654 historic"| EXT
+  EXT --> CUR
+  CDC --> DIM
+  CUR -.->|"merge / seed"| DIM
+  DIM --> GOLD
+</div>
+
+<pre class="ascii">SQL Dimension.CashBalance (2021→) ──extract──► S3 sql-server-extraction/CashBalance
+        │                                              │
+        │ gap vs AWS                                   ▼
+        │                                    migration merge → Iceberg legacy
+        │                                    OR direct Redshift historic MERGE
+SGP CDC player_balances (2025-06-16→) ─────────────────► Glue cash_balance job
+                                                         │
+                                                         ▼
+                                              dimension.cash_balance (gold)</pre>
+
+<h3>Issue map</h3>
+<table>
+  <tr><th>ID</th><th>Where</th><th>Plain meaning</th><th>Status</th></tr>
+  <tr><td><strong>G1</strong></td><td>CDC start 2025-06-16</td><td>Cannot rebuild pre–mid-Jun 2025 from AWS alone</td><td><span class="pill pill-ok">PROVED</span></td></tr>
+  <tr><td><strong>G2</strong></td><td>Gold only Aug 26–Sep 1 2026</td><td>Even post-CDC history not fully in gold yet</td><td><span class="pill pill-ok">PROVED</span></td></tr>
+  <tr><td><strong>G3</strong></td><td>SQL HEAP, 42.7M pre-Jul</td><td>Extract needs BAU / chunk plan</td><td><span class="pill pill-warn">OPEN</span></td></tr>
+  <tr><td><strong>P1</strong></td><td>DE-9554 Done</td><td>Logic/delta OK; historic still separate</td><td>Audit below</td></tr>
+  <tr><td><strong>P2</strong></td><td>Common merge runbook</td><td>Nathan / Andrew walkthrough</td><td><span class="pill pill-warn">WAITING</span></td></tr>
+</table>
+
+<!-- COUNTS -->
+<h2 id="counts">4. Live counts (2026-09-08)</h2>
+<p class="muted">Pair: test SQL Server (BGB-BT / Unity) ↔ prod Athena + prod Redshift. Feasibility counts — not full attribute compare yet.</p>
+
+<table>
+  <tr><th>System</th><th>Object</th><th>Rows</th><th>Min date</th><th>Max date</th><th>Notes</th></tr>
+  <tr><td>SQL</td><td><code>Dimension.CashBalance</code></td><td>103,767,561</td><td>2021-03-04</td><td>2026-09-08</td><td>HEAP ~2.7 GB</td></tr>
+  <tr><td>SQL</td><td>Pre 2025-07-01</td><td><strong>42,706,989</strong></td><td>—</td><td>—</td><td>Andrew’s ask</td></tr>
+  <tr><td>SQL</td><td>From 2025-07-01</td><td>61,060,572</td><td>—</td><td>—</td><td></td></tr>
+  <tr><td>Athena</td><td><code>petfre_franchisedb.player_balances</code></td><td>6,582,111,383</td><td>2025-06-16</td><td>2026-09-08</td><td>Glue source</td></tr>
+  <tr><td>Athena</td><td>Pre Jul (raw)</td><td>225,733,535</td><td>—</td><td>—</td><td>~2 weeks before Jul only</td></tr>
+  <tr><td>Athena</td><td><code>sgp_player_balance</code></td><td>12,834,679</td><td>2025-10-03</td><td>2026-09-08</td><td>Current-balance curated; not dim input</td></tr>
+  <tr><td>Redshift</td><td><code>dimension.cash_balance</code></td><td>1,981,755</td><td>2026-08-26</td><td>2026-09-01</td><td>Post DE-9554 tip window</td></tr>
+</table>
+
+<div class="box">
+  <strong>Count mismatch — justification:</strong>
+  SQL ≫ Redshift is <em>expected</em> until historic load + gold rebuild.
+  Not a Glue tip bug for DE-9654.
+  <br/>
+  <strong>BK overlap:</strong> not run yet (after merge design + sample month).
+</div>
+
+<p class="muted">SQL monthly samples pre-Jul: 2021-03 ≈107k; 2025-04…06 ≈2.3–2.7M rows/month. Distinct PlayerID ≈12.9M.</p>
+
+<!-- OPTIONS -->
+<h2 id="options">5. Load options (feasibility)</h2>
+
+<div class="issue ok">
+  <strong>Option A — Extract SQL mart CashBalance / vCashBalance</strong>
+  <span class="pill pill-ok">RECOMMENDED</span>
+  <p>Tool: <code>prod-sql-server-extraction</code> → S3 → migration config → Iceberg legacy
+  (self_exclusion style) <em>or</em> direct Redshift historic MERGE for pre-cutoff dates.</p>
+  <ul>
+    <li><strong>Pros:</strong> 42.7M pre-Jul vs billions of audit events; matches ticket examples.</li>
+    <li><strong>Cons:</strong> HEAP scan; BalanceDate = load stamp; need PlayerBK mapping; UPSERT key care.</li>
+    <li><strong>BAU:</strong> feasible with chunking / off-peak — confirm with Andrew.</li>
+  </ul>
+</div>
+
+<div class="issue crit">
+  <strong>Option B — Backfill Sharp player_balances_audit into Iceberg</strong>
+  <span class="pill pill-bad">RISKY</span>
+  <p>Matches live pipeline grain, but raw already 6.6B from mid-2025 alone.
+  Pre-2025 Sharp audit could explode storage. Not first choice.</p>
+</div>
+
+<div class="issue med">
+  <strong>Option C — Hybrid</strong>
+  <span class="pill pill-info">PREFERRED END STATE</span>
+  <ol>
+    <li>Option A for dates <strong>&lt; 2025-06-16</strong> (before Iceberg CDC exists).</li>
+    <li>Rebuild gold from existing Iceberg for <strong>≥ 2025-06-16</strong> via watermark + dim job.</li>
+  </ol>
+</div>
+
+<h3>Recommended sequence</h3>
+<ol>
+  <li>Confirm DE-9554 prod delta still healthy</li>
+  <li>Agree cutoff (ticket Jul 2025 vs Iceberg floor Jun 16)</li>
+  <li>Andrew / Nathan walkthrough (chunk size, off-peak)</li>
+  <li>DEV: one month extract → merge proof</li>
+  <li>Prod SFN queue (FAILED watch only)</li>
+  <li>Gold reload / merge + <code>compare.py</code> + BK overlap</li>
+  <li>Write common runbook</li>
+</ol>
+
+<!-- SHIP VS LEAVE -->
+<h2 id="ship">6. What to ship vs leave</h2>
+<div class="grid2">
+  <div class="box ok">
+    <strong>Ship / do in DE-9654</strong>
+    <ul>
+      <li>Chunked SQL extract of CashBalance / vCashBalance</li>
+      <li>Migration merge (self_exclusion-style legacy Iceberg or agreed target)</li>
+      <li>Hybrid rebuild of gold from Iceberg for ≥ 2025-06-16</li>
+      <li>Documented runbook (acceptance criterion)</li>
+      <li>BK validation after load</li>
+    </ul>
+  </div>
+  <div class="box warn">
+    <strong>Leave / out of scope</strong>
+    <ul>
+      <li>Re-opening DE-9554 change-only / balance_date tip logic</li>
+      <li>Full Sharp audit dump into Iceberg as first move</li>
+      <li>“Fixing” the 1-day BalanceDate vs event-day offset by shifting SQL</li>
+      <li>Treating curated sgp_player_balance as the dim input</li>
+    </ul>
+  </div>
+</div>
+
+<!-- CAN VS CANNOT -->
+<h2 id="cancannot">7. Can vs cannot</h2>
+<table>
+  <tr><th>Can</th><th>Cannot</th></tr>
+  <tr>
+    <td>Load ~42.7M pre-Jul via DynamoDB queue + SFN (concurrency 1)</td>
+    <td>Rebuild 2021–mid-2025 from current AWS CDC alone</td>
+  </tr>
+  <tr>
+    <td>Match Alice-window gold after DE-9554 tip (recent dates)</td>
+    <td>Expect full-table row-count parity SQL vs RS before historic merge</td>
+  </tr>
+  <tr>
+    <td>Reuse self_exclusion / DE-9655 extract→merge pattern</td>
+    <td>Ignore HEAP / BAU risk on Unity extract</td>
+  </tr>
+</table>
+
+<!-- RELATED -->
+<h2 id="related">8. Related tickets — DE-9554 closed-claim audit</h2>
+<p><strong>Done ≠ historic complete.</strong></p>
+<table>
+  <tr><th>Claim</th><th>Who</th><th>Topic</th><th>Live verify</th><th>Verdict</th></tr>
+  <tr><td>Change-only grain fixed</td><td>Ben / DE-9554</td><td><code>filter_changed_records</code></td><td>Tip + gold recent only</td><td><span class="pill pill-ok">PASS logic</span></td></tr>
+  <tr><td>Need extract prior to July</td><td>Andy Lamb</td><td>Historic depth</td><td>Iceberg min 2025-06-16; SQL from 2021</td><td><span class="pill pill-ok">PASS — still needed</span></td></tr>
+  <tr><td>Done means historic loaded</td><td>Resolution</td><td>—</td><td>Gold 1.98M Aug only</td><td><span class="pill pill-bad">FAIL inherit</span> → DE-9654</td></tr>
+  <tr><td>1-day BalanceDate offset</td><td>Ben 2026-09-02</td><td><code>BalanceDate</code></td><td>Documented</td><td><span class="pill pill-ok">PASS caveat</span></td></tr>
+</table>
+
+<!-- LINKS -->
+<h2 id="links">9. Jira links followed</h2>
+<table>
+  <tr><th>Link</th><th>Where</th><th>What we did</th><th>Result</th></tr>
+  <tr><td>DE-9554</td><td>Description / issuelink</td><td>Full fetch + Done comments</td><td>Logic Done; historic = this ticket</td></tr>
+  <tr><td><code>prod-sql-server-extraction</code></td><td>Resources</td><td>Mapped to etl-common TF + <code>sql_server_to_s3_parquet.py</code></td><td>Correct extract tool</td></tr>
+  <tr><td>silver_player_disabled_history</td><td>Description</td><td>Located silver job</td><td>Pattern reference</td></tr>
+  <tr><td>dimension_self_exclusion</td><td>Description</td><td>Reads <code>dimension_self_exclusion_legacy</code></td><td><strong>Best template</strong> for Option A</td></tr>
+  <tr><td>Andrew comment</td><td>2026-09-08</td><td>Pre-Jul count + indexes</td><td>42.7M; HEAP</td></tr>
+</table>
+
+<!-- FIELDS -->
+<h2 id="fields">10. Field / grain map</h2>
+<table>
+  <tr><th>SQL (<code>vCashBalance</code>)</th><th>Redshift</th><th>Notes</th></tr>
+  <tr><td>PlayerBK</td><td>player_bk</td><td>Base table has PlayerID only</td></tr>
+  <tr><td>Balance</td><td>balance</td><td>SQL money; RS decimal</td></tr>
+  <tr><td>BalanceDate</td><td>balance_date</td><td>SQL = load stamp; RS = event day</td></tr>
+</table>
+<p class="muted">Profile <code>mappings/complex_dims/cash_balance.yaml</code> today uses <code>pk: player_bk</code> only —
+revisit for historic multi-day validation (likely <code>player_bk + balance_date</code>).</p>
+
+<!-- VALIDATION LOG -->
+<h2 id="validation">11. Validation log</h2>
+<table>
+  <tr><th>When</th><th>Pair</th><th>What</th><th>Result</th></tr>
+  <tr><td>2026-09-08</td><td>test SQL → Unity</td><td>Pre-Jul / total counts + indexes</td><td>42.7M pre-Jul; HEAP; 103.8M total</td></tr>
+  <tr><td>2026-09-08</td><td>prod Athena</td><td>player_balances + sgp_player_balance ranges</td><td>CDC from 2025-06-16; curated from 2025-10-03</td></tr>
+  <tr><td>2026-09-08</td><td>prod Redshift</td><td>dimension.cash_balance aggregates</td><td>1.98M rows; 2026-08-26…09-01 only</td></tr>
+  <tr><td>—</td><td>test SQL → RS BK</td><td>Attribute / BK overlap compare</td><td><span class="pill pill-warn">NOT YET</span> — after merge design</td></tr>
+</table>
+
+<!-- BLOCKS -->
+<h2 id="blocks">12. What blocks Done / how to close</h2>
+<ol>
+  <li>Nathan / Andrew extract walkthrough + BAU approval for HEAP scan</li>
+  <li>Documented cutoff date (Jul 1 vs Jun 16)</li>
+  <li>Merge target design (legacy Iceberg vs direct Redshift)</li>
+  <li>DEV proof month</li>
+  <li>Prod chunked load + gold validation + runbook</li>
+</ol>
+<div class="box">
+  <strong>Close gate (when ready):</strong>
+  curated/legacy history present for agreed cutoff +
+  <strong>test SQL → prod Redshift</strong> BK overlap on
+  <code>(player_bk, balance_date)</code> (revisit compare YAML) +
+  runbook attached to Jira. Smoke counts alone are not enough.
+</div>
+
+<!-- REPRODUCE -->
+<h2 id="reproduce">13. Reproduce (safe reads)</h2>
+<pre class="sql">-- test SQL
+SELECT COUNT(*) AS total_rows,
+       SUM(CASE WHEN BalanceDate &lt; '2025-07-01' THEN 1 ELSE 0 END) AS pre_jul
+FROM EnterpriseDataMartUnity.Dimension.CashBalance WITH (NOLOCK);
+
+-- Athena (prod)
+SELECT COUNT(*) AS c, MIN(_cdc.ts) AS min_cdc, MAX(_cdc.ts) AS max_cdc
+FROM petfre_franchisedb.player_balances;
+
+-- Redshift (prod)
+SELECT COUNT(*), MIN(balance_date), MAX(balance_date)
+FROM dimension.cash_balance;</pre>
+
+<!-- TEAMS -->
+<h2 id="teams">14. Teams paste for Andrew</h2>
+<div class="box">
+  <p style="margin:0">Pre <strong>July 2025</strong> on <strong>Dimension.CashBalance</strong>: about <strong>42.7 million</strong> rows.
+  Table is a <strong>HEAP</strong> (~2.7 GB) — extract should be chunked and off-peak.
+  AWS Iceberg <strong>player_balances</strong> only starts <strong>16 Jun 2025</strong>, so SQL extract is required for older history.
+  Prefer extract → merge (self exclusion style), not a full Sharp audit dump.</p>
+</div>
+
+<footer>
+  Keep in sync with triage_validation.md · secondary report pack under
+  triage evidence · proposed_solution.html for automated load design
+</footer>
+
+</div>
+</body>
+</html>

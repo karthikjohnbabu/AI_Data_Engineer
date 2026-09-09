@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable
 from uuid import uuid4
 
 import yaml
@@ -11,6 +10,7 @@ import yaml
 from models.agent_run_context import AgentRunContext
 from observability.events.emitter import emit_event
 from tenants.context import TenantContext
+from tenants.secrets import tenant_dir as tenant_data_dir
 from workflows.engine.context import WorkflowRunContext
 from workflows.engine.state_machine import WorkflowStateMachine
 from workflows.stages.base import StageHandler, StageResult
@@ -23,7 +23,11 @@ class WorkflowExecutor:
             Path(__file__).resolve().parent.parent / "templates"
         )
 
-    def load_template(self, name: str) -> dict:
+    def load_template(self, name: str, tenant_dir: Path | None = None) -> dict:
+        if tenant_dir:
+            tenant_path = tenant_dir / "workflows" / f"{name}.yaml"
+            if tenant_path.exists():
+                return yaml.safe_load(tenant_path.read_text(encoding="utf-8")) or {}
         path = self.templates_dir / f"{name}.yaml"
         if not path.exists():
             raise FileNotFoundError(f"Workflow template not found: {name}")
@@ -54,7 +58,9 @@ class WorkflowExecutor:
         risk_level: str = "MEDIUM",
         handlers: dict[str, StageHandler] | None = None,
     ) -> WorkflowRunContext:
-        template = self.load_template(template_name)
+        template = self.load_template(
+            template_name, tenant_dir=tenant_data_dir(tenant.tenant_id)
+        )
         stages = self.ordered_stages(template)
         run_id = str(uuid4())[:12]
         agent_run = AgentRunContext(
@@ -107,4 +113,64 @@ class WorkflowExecutor:
         if ctx.status == "running":
             ctx.status = "completed"
         emit_event("workflow.completed", tenant.tenant_id, run_id, workflow_stage="end", data={"status": ctx.status})
+        return ctx
+
+    def execute_stage(
+        self,
+        tenant: TenantContext,
+        template_name: str,
+        stage_id: str,
+        *,
+        ticket_id: str | None = None,
+        user: str | None = None,
+        risk_level: str = "MEDIUM",
+        handlers: dict[str, StageHandler] | None = None,
+    ) -> WorkflowRunContext:
+        """Run a single pipeline stage using this tenant's secrets and skills."""
+        template = self.load_template(
+            template_name, tenant_dir=tenant_data_dir(tenant.tenant_id)
+        )
+        stages = self.ordered_stages(template)
+        stage = next(
+            (s for s in stages if s["id"] == stage_id or s["type"] == stage_id),
+            None,
+        )
+        if stage is None:
+            known = [s["id"] for s in stages]
+            raise ValueError(f"Unknown stage {stage_id!r}. Known: {known}")
+
+        run_id = str(uuid4())[:12]
+        agent_run = AgentRunContext(
+            run_id=run_id,
+            tenant_id=tenant.tenant_id,
+            ticket_id=ticket_id,
+            repository=tenant.config.git.repository,
+            workflow_id=template.get("name", template_name),
+            risk_level=risk_level,
+            user=user,
+            workflow_stage=stage["type"],
+        )
+        ctx = WorkflowRunContext(
+            workflow_id=agent_run.workflow_id,
+            template_name=template_name,
+            tenant_id=tenant.tenant_id,
+            run=agent_run,
+        )
+        emit_event(
+            f"{stage['type']}.started",
+            tenant.tenant_id,
+            run_id,
+            workflow_stage=stage["type"],
+        )
+        handler = (handlers or {}).get(stage["type"]) or get_stage_handler(stage["type"])
+        result: StageResult = handler.run(tenant, agent_run, stage, ctx.stage_outputs)
+        ctx.stage_outputs[stage["type"]] = result.output
+        ctx.status = "completed" if result.success else "failed"
+        emit_event(
+            f"{stage['type']}.completed" if result.success else f"{stage['type']}.failed",
+            tenant.tenant_id,
+            run_id,
+            workflow_stage=stage["type"],
+            data={"success": result.success, "message": result.message},
+        )
         return ctx

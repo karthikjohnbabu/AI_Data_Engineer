@@ -1,0 +1,13 @@
+id: newton-platform-repo
+name: Newton platform repository
+version: 1.0.0
+description: Store Newton product information (code repo, tenants, MySQL plan) for the newton tenant only.
+triggers:
+  tenant:
+    - newton
+capabilities:
+  - platform_repo
+  - tenant_layout
+risk: low
+handler:
+  module: SKILL.md

@@ -15,3 +15,4 @@ class Rule(BaseModel):
     scope: dict[str, Any] = Field(default_factory=dict)
     conditions: dict[str, Any] = Field(default_factory=dict)
     action: RuleAction = Field(default_factory=RuleAction)
+    guidance_file: str = ""

@@ -1,0 +1,8 @@
+id: git-repo-scope
+name: "Git scope + never create .cursor under sibling repos"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: "Git scope + never create .cursor under sibling repos"
+guidance_file: guidance/git-repo-scope.md

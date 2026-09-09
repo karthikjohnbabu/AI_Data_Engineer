@@ -1,0 +1,14 @@
+checks:
+  phase1.read_jira:
+    status: success
+    lastRunAt: '2026-09-09T20:47:06.950293+00:00'
+    runId: 0ed807a7-b66
+    message: checks read_jira · workflow `triage` (completed)
+phases:
+  phase1:
+    status: in_progress
+    lastRunAt: '2026-09-09T20:47:06.950293+00:00'
+    runId: 0ed807a7-b66
+    message: Checks read_jira · 1/4
+currentPhase: phase1
+updatedAt: '2026-09-09T20:47:06.950293+00:00'

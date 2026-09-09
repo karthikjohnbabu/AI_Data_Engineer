@@ -1,0 +1,20 @@
+tenant_id: newton
+note: Newton platform health — not customer gold. Sample Power BI for platform ops.
+powerbi:
+  - id: newton_platform_ops
+    name: Newton platform ops
+    workspace: Newton Internal
+    dataset: newton_control
+    type: dashboard
+    status: published
+    owner: Platform
+    description: Tenant counts, job health, API uptime (platform only).
+    pages:
+      - Tenants
+      - API
+windows: []
+checks:
+  - id: api_health
+    name: API health
+    status: pending
+last_run: null

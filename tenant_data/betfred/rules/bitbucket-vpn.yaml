@@ -1,0 +1,8 @@
+id: bitbucket-vpn
+name: "Bitbucket git failures mean VPN off — not an admin IP whitelist"
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: "Bitbucket git failures mean VPN off — not an admin IP whitelist"
+guidance_file: guidance/bitbucket-vpn.md

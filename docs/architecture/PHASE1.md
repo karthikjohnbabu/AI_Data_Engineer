@@ -15,8 +15,8 @@
 | Tenant-scoped memory | `backend/memory/` |
 | Approval policy evaluation | `backend/approvals/policy_eval.py` |
 | Structured events | `backend/observability/events/` |
-| Example tenants | `tenant_data/{newton,example_customer,busybees}/` |
-| API | `GET /api/tenants`, `/tenants/context`, `POST /tenants/workflows/run` |
+| Example tenants | `tenant_data/{newton,betfred,example_customer,busybees}/` |
+| API | `GET /api/tenants`, `/tenants/context`, `/tenants/workspace`, `POST /tenants/workflows/run-stage` |
 | Isolation + workflow tests | `backend/tests/unit/test_architecture_phase1.py` (**12 passed**) |
 
 ## Cursor knowledge migration map

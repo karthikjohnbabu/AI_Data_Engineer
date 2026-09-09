@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>DE-9654 — Solution 2 — one-shot extract</title>
+<style>
+  :root{--ink:#101828;--muted:#475467;--border:#d0d5dd;--bg:#f8fafc;--card:#fff;--blue:#175cd3;--blue-bg:#eff8ff;--ok:#067647;--ok-bg:#ecfdf3;--warn:#b54708;--warn-bg:#fffaeb;--bad:#b42318;--bad-bg:#fef3f2;--purple:#6927da;--purple-bg:#f4ebff}
+  *{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",Calibri,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5}
+  .wrap{max-width:920px;margin:0 auto;padding:24px 18px 80px}
+  h1{font-size:1.4rem;margin:0 0 4px}.sub{color:var(--muted);font-size:.9rem;margin:0 0 16px}
+  h2{font-size:1.05rem;margin:1.8rem 0 .5rem;padding-bottom:5px;border-bottom:2px solid var(--blue)}
+  h3{font-size:.95rem;margin:1rem 0 .3rem;color:#344054}p,li{font-size:.9rem;color:#344054}
+  .verdict{background:var(--ok-bg);border:1px solid #abefc6;border-left:5px solid var(--ok);border-radius:8px;padding:14px 16px;margin:12px 0}
+  .badbox{background:var(--bad-bg);border:1px solid #fecdca;border-left:5px solid var(--bad);border-radius:8px;padding:14px 16px;margin:12px 0}
+  .warnbox{background:var(--warn-bg);border:1px solid #fec84b;border-left:5px solid var(--warn);border-radius:8px;padding:14px 16px;margin:12px 0}
+  .plan{background:var(--blue-bg);border:2px solid var(--blue);border-radius:10px;padding:14px 16px;margin:12px 0}
+  .box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin:10px 0}
+  .exbox{background:#fff;border:1px dashed #98a2b3;border-radius:8px;padding:10px 12px;margin:10px 0}
+  .exbox .lbl{font-size:.7rem;font-weight:700;color:var(--purple);text-transform:uppercase;margin:0 0 6px}
+  table{width:100%;border-collapse:collapse;font-size:.78rem;margin:8px 0 14px;background:var(--card)}
+  th,td{border:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top}th{background:#f2f4f7}
+  code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8em;background:#f2f4f7;padding:1px 4px;border-radius:3px}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.66rem;font-weight:700}
+  .pill-ok{background:#abefc6;color:#067647}.pill-warn{background:#fedf89;color:#b54708}.pill-new{background:#f4ebff;color:#6927da}.pill-bad{background:#fecdca;color:#b42318}
+  .toc a{color:var(--blue);text-decoration:none}.toc li{margin:3px 0;font-size:.86rem}
+  pre.ex,pre.ascii{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:12px;font-size:.68rem;overflow-x:auto;line-height:1.4;white-space:pre}
+  .step{background:#fff;border:1px solid var(--border);border-left:5px solid var(--blue);border-radius:8px;padding:10px 12px;margin:8px 0}
+  .callout{font-size:1.05rem;font-weight:700;margin:0 0 8px}
+  .jira-paste{background:#fff;border:2px dashed #98a2b3;border-radius:10px;padding:16px;margin:12px 0;font-size:.93rem;line-height:1.55}
+  footer{margin-top:2rem;color:var(--muted);font-size:.8rem}.muted{color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>DE-9654 — Solution 2 — one-shot extract</h1>
+<p class="sub">
+  <a href="proposed_solution.html">← chooser</a> ·
+  also see <a href="proposed_solution_1.html">Solution 1 (year-by-year)</a> ·
+  True lift-and-shift · <strong>one extract</strong> ·
+  no interactive session for prod gold · 2026-09-09
+</p>
+
+<div class="verdict">
+  <p class="callout">Is a single-window extract possible?</p>
+  <p><strong>Yes — Glue can do it.</strong> One
+    <code>sql-server-extraction</code> for the full pre-cutoff window
+    (~42.7M / ~2.7&nbsp;GB) fits the job capacity (G.2X×10,
+    <strong>48h</strong> timeout). Then arrange → Iceberg → one dim
+    initial-load MERGE → BAU CDC path from <code>player_balances</code>
+    keeps ≥&nbsp;cutoff.</p>
+  <p style="margin-bottom:0"><strong>No</strong> Glue interactive session /
+    notebook / ad-hoc Redshift COPY for prod gold — those skip the platform
+    path, watermarks, and audit trail. Use them only for count dry-runs.</p>
+</div>
+
+<div class="warnbox">
+  <p class="callout">Caveats of the single-window extract (read before picking this)</p>
+  <table>
+    <tr><th>#</th><th>Caveat</th><th>What it means</th><th>Mitigation</th></tr>
+    <tr>
+      <td>C1</td>
+      <td><strong>HEAP long scan on SQL Server</strong></td>
+      <td>One multi-hour scan of ~2.7&nbsp;GB / ~42.7M rows with no index —
+        can contend with BAU (<code>usp_CashBalanceSharp</code>)</td>
+      <td>Off-peak only; Andrew/DBA BAU OK; optional NCI later</td>
+    </tr>
+    <tr>
+      <td>C2</td>
+      <td><strong><code>num_partitions=1</code> is mandatory</strong></td>
+      <td>If omitted under <code>partition_column_type=date</code>, the job
+        opens ~1 JDBC partition <em>per day</em> (~1,500+ HEAP scans) —
+        Unity meltdown</td>
+      <td>Always set <code>--num_partitions=1</code>,
+        <code>partition_column=BalanceDate</code>,
+        <code>partition_column_type=date</code>,
+        <code>fetch_size=100000</code>, <code>NOLOCK</code></td>
+    </tr>
+    <tr>
+      <td>C3</td>
+      <td><strong>Bad resume if extract fails mid-flight</strong></td>
+      <td>One failed 42.7M run usually means re-run the whole window
+        (or clean the S3 segment and start again)</td>
+      <td>If BAU/resume matters more → use yearly Solution 1</td>
+    </tr>
+    <tr>
+      <td>C4</td>
+      <td><strong>Gold MERGE may hit 120&nbsp;min dim timeout</strong></td>
+      <td>One MERGE of ~42.7M into Redshift can exceed today’s
+        <code>uk_digital_dimension_cash_balance</code> timeout</td>
+      <td>Bump dim timeout in TF before the MERGE, or fall back to
+        year-slice MERGEs</td>
+    </tr>
+    <tr>
+      <td>C5</td>
+      <td><strong>No mid-window validation</strong></td>
+      <td>You only prove SQL≈S3≈Iceberg≈gold after the full load —
+        harder to catch a bad year early</td>
+      <td>Optional tiny DEV probe first; or prefer Solution 1</td>
+    </tr>
+    <tr>
+      <td>C6</td>
+      <td><strong>Still need NEW JSON + dim tip</strong></td>
+      <td>One-shot does not skip platform artefacts —
+        <code>cash_balance_legacy.json</code> + initial_load tip required</td>
+      <td>Ship both before the extract</td>
+    </tr>
+  </table>
+  <p style="margin-bottom:0"><strong>Verdict:</strong> single-window is
+    <strong>possible and simplest ops</strong> if Andrew accepts C1–C4.
+    If not, fall back to year-by-year (Solution 1) — same jobs/JSON.</p>
+</div>
+
+<div class="badbox">
+  <p class="callout">Hard fail if partition config is wrong</p>
+  <p>For <code>partition_column_type=date</code>, omitting
+    <code>num_partitions</code> defaults to <strong>one JDBC partition per
+    day</strong>. A 2021→2025 window ≈ <strong>1,500+ concurrent HEAP
+    scans</strong>.</p>
+  <p style="margin-bottom:0"><strong>Must set</strong>
+    <code>--num_partitions = 1</code>, off-peak, Andrew BAU OK.</p>
+</div>
+
+<div class="plan">
+  <p class="callout">THE PLAN — 6 steps</p>
+  <ol style="margin:0;padding-left:1.2rem">
+    <li>Ship <strong>NEW</strong> <code>cash_balance_legacy.json</code> +
+      dim initial_load tip (Jenkins).</li>
+    <li><strong>One</strong> extract: 2021-03-01 → cutoff, NOLOCK,
+      PlayerBK, <code>num_partitions=1</code>, off-peak.</li>
+    <li>Arrange until idle → Athena count ≈ SQL.</li>
+    <li>Dim with epoch watermark → MERGE legacy
+      <code>balance_date &lt; cutoff</code> (watch dim timeout — today
+      <strong>120 min</strong>; may need one-off bump for 42.7M).</li>
+    <li>Camera ≥2× for ≥ cutoff (existing job).</li>
+    <li>Validate + Done.</li>
+  </ol>
+</div>
+
+<div class="box toc">
+  <strong>Jump</strong>
+  <ol>
+    <li><a href="#caveats">Caveats — is single-window possible?</a></li>
+    <li><a href="#quick">Quick test — pre-flight (run first)</a></li>
+    <li><a href="#jobs">Jobs / artefacts per hop</a></li>
+    <li><a href="#no">What we are not doing</a></li>
+    <li><a href="#deps">Dependencies (cannot skip)</a></li>
+    <li><a href="#you">What YOU do</a></li>
+    <li><a href="#extract">One-shot extract EXAMPLE</a></li>
+    <li><a href="#json">JSON + gold tip EXAMPLE</a></li>
+    <li><a href="#test">Minimum testing</a></li>
+    <li><a href="#fallback">Fallback if one extract fails</a></li>
+    <li><a href="#merge">MERGE vs UNION (one liner)</a></li>
+    <li><a href="#open">Open with Andrew</a></li>
+    <li><a href="#jira">Jira / Teams</a></li>
+  </ol>
+</div>
+
+<!-- CAVEATS ANCHOR (content is in the warnbox above) -->
+<h2 id="caveats">0a. Caveats — is single-window possible?</h2>
+<p><strong>Yes, it is possible</strong> — Glue capacity (48h) covers ~42.7M.
+  The caveats are not “Glue can’t do it”; they are SQL Server BAU, partition
+  fan-out, resume, and the Redshift MERGE timeout. See the yellow box at the
+  top (C1–C6).</p>
+
+<!-- QUICK TEST -->
+<h2 id="quick">0. Quick test — pre-flight (run first)</h2>
+<p>Confirm the platform pieces exist and the one-shot extract is
+  <strong>doable</strong> before shipping JSON / dim tip. Run in your
+  terminal (SSO). Tick PASS/FAIL on the ticket.</p>
+<p class="muted">Live-checked <strong>2026-09-09</strong> (prod + DEV) —
+  re-run before you start; SSO can drift.</p>
+<p class="muted"><strong>Raw buckets (verified from Glue job defaults):</strong>
+  DEV <code>s3://raw-dp-dev-767828768594-euw2/sql-server-extraction/</code>,
+  PROD <code>s3://raw-dp-prod-490004657962-euw2/sql-server-extraction/</code>.
+  <code>CashBalance/segment=2024/</code> is not present yet in either env
+  (expected before first run).</p>
+
+<table>
+  <tr><th>#</th><th>What</th><th>Where / command</th><th>Expect (verified 2026-09-09)</th><th>☐</th></tr>
+  <tr>
+    <td>Q1</td>
+    <td>Extract job exists</td>
+    <td><code>aws glue get-job --job-name {env}-sql-server-extraction</code>
+      (Glue console → Jobs)</td>
+    <td><strong>EXISTS</strong> prod+DEV: G.2X × 10, timeout <strong>2880</strong> (48h), Glue 5.0</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q2</td>
+    <td>Extract accepts date overrides</td>
+    <td>Same get-job → DefaultArguments keys</td>
+    <td>Has <code>--start_value</code>, <code>--end_value</code>,
+      <code>--partition_column</code>, <code>--partition_column_type</code>,
+      <code>--num_partitions</code>, <code>--query_template</code>,
+      <code>--s3_output_path</code>, <code>--use_nolock</code></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q3</td>
+    <td>Arrange job exists</td>
+    <td><code>aws glue get-job --job-name {env}-arrange-parquet-processing</code></td>
+    <td><strong>EXISTS</strong> prod+DEV (prod: G.2X × 5, timeout 1200)</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q4</td>
+    <td>Cash balance dim exists</td>
+    <td><code>aws glue get-job --job-name {env}_uk_digital_dimension_cash_balance</code></td>
+    <td><strong>EXISTS</strong> prod+DEV; timeout <strong>120</strong> min
+      (watch for 42.7M MERGE — may need TF bump)</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q5</td>
+    <td>Sibling legacy Iceberg pattern</td>
+    <td><code>aws glue get-table --database-name {env}_dp_dwh_uk_digital
+      --name dimension_self_exclusion_legacy</code></td>
+    <td><strong>EXISTS</strong> prod+DEV — proves arrange→legacy path works</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q6</td>
+    <td>CashBalance legacy Iceberg</td>
+    <td>Same get-table … <code>dimension_cash_balance_legacy</code></td>
+    <td><strong>ABSENT</strong> (expected) — created by NEW JSON + arrange</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q7</td>
+    <td>Camera source table</td>
+    <td>Glue Catalog search <code>player_balances</code></td>
+    <td><strong>EXISTS</strong> DB <code>petfre_franchisedb.player_balances</code>
+      (dim reads this — not <code>sgp_player_balance</code>)</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q8</td>
+    <td>Watermark table</td>
+    <td><code>aws dynamodb describe-table --table-name {env}-ETLJobControl</code></td>
+    <td><strong>EXISTS</strong> ACTIVE — BAU dim watermarks (not a month queue)</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q9</td>
+    <td>Migration JSON sibling in repo</td>
+    <td>etl-customer
+      <code>migration-config/.../self_exclusion.json</code></td>
+    <td><strong>EXISTS</strong> — clone shape for <code>cash_balance_legacy.json</code></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q10</td>
+    <td>SQL source doable</td>
+    <td>SSMS / sqlcmd on test Unity</td>
+    <td>COUNT pre-Jul ≈ <strong>42,706,989</strong>; TOP 5 from
+      <code>Dimension.vCashBalance</code> shows PlayerBK</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Q11</td>
+    <td>CashBalance target prefix state</td>
+    <td><code>aws s3 ls s3://raw-dp-dev-767828768594-euw2/sql-server-extraction/CashBalance/segment=2024/</code><br/>
+      <code>aws s3 ls s3://raw-dp-prod-490004657962-euw2/sql-server-extraction/CashBalance/segment=2024/</code></td>
+    <td><strong>Empty / not found</strong> before first extract (expected)</td>
+    <td></td>
+  </tr>
+</table>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — copy/paste prod checks</p>
+<pre class="ex">export AWS_PROFILE=prod AWS_REGION=eu-west-2
+# aws sso login --profile prod   # if expired
+
+aws glue get-job --job-name prod-sql-server-extraction \
+  --query 'Job.{Name:Name,Timeout:Timeout,Workers:NumberOfWorkers,WorkerType:WorkerType}'
+aws glue get-job --job-name prod-arrange-parquet-processing --query 'Job.Name'
+aws glue get-job --job-name prod_uk_digital_dimension_cash_balance \
+  --query 'Job.{Name:Name,Timeout:Timeout}'
+aws glue get-table --database-name prod_dp_dwh_uk_digital \
+  --name dimension_self_exclusion_legacy --query 'Table.Name'
+aws glue get-table --database-name prod_dp_dwh_uk_digital \
+  --name dimension_cash_balance_legacy --query 'Table.Name'   # expect EntityNotFound
+aws dynamodb describe-table --table-name prod-ETLJobControl \
+  --query 'Table.TableStatus'
+aws s3 ls s3://raw-dp-prod-490004657962-euw2/sql-server-extraction/
+aws s3 ls s3://raw-dp-prod-490004657962-euw2/sql-server-extraction/CashBalance/segment=2024/
+
+# DEV: swap prod→dev / prod_→dev_</pre>
+</div>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — tiny DEV “doable” extract (optional before full one-shot)</p>
+<pre class="ex"># After Andrew JDBC host OK — ONE small window only (e.g. 1 day)
+Job: dev-sql-server-extraction
+--start_value = 2024-05-01
+--end_value   = 2024-05-02
+--num_partitions = 1
+--partition_column = BalanceDate
+--partition_column_type = date
+--s3_output_path = s3://raw-dp-dev-767828768594-euw2/sql-server-extraction/CashBalance/segment=probe_2024-05-01/
+--query_template = SELECT PlayerBK, Balance, BalanceDate
+    FROM Dimension.vCashBalance WITH (NOLOCK)
+    WHERE BalanceDate &gt;= '{start}' AND BalanceDate &lt; '{end}'
+
+PASS = Glue SUCCEEDED + parquet landed + row count &gt; 0
+(Do not need arrange/gold for this probe — only proves JDBC + overrides.)</pre>
+</div>
+
+<div class="banner" style="background:var(--warn-bg);border:1px solid #fec84b;border-left:5px solid var(--warn);border-radius:8px;padding:12px 14px;margin:12px 0">
+  <strong>Solution 2 specific:</strong> Q2 must show you can pass
+  <code>num_partitions=1</code>. Q4 timeout 120 min is the gold-MERGE risk —
+  note it before the full load. Interactive session is <strong>not</strong> a
+  substitute for Q1–Q4. Accept C1–C4 with Andrew before starting the one-shot.
+</div>
+
+<!-- JOBS -->
+<h2 id="jobs">0b. Jobs / artefacts per hop</h2>
+<table>
+  <tr><th>Hop</th><th>Job / artefact</th><th>Status</th><th>Key settings / notes</th></tr>
+  <tr>
+    <td>SQL→S3</td>
+    <td><code>{env}-sql-server-extraction</code></td>
+    <td><span class="pill pill-ok">EXISTING</span></td>
+    <td>One window 2021-03-01→cutoff; G.2X×10 / 48h;
+      <code>partition_column=BalanceDate</code>,
+      <code>partition_column_type=date</code>,
+      <code>num_partitions=1</code>, <code>fetch_size=100000</code>, NOLOCK;
+      S3 e.g.
+      <code>s3://raw-dp-dev-767828768594-euw2/sql-server-extraction/CashBalance/segment=pre_cutoff/</code>
+      (prod: <code>raw-dp-prod-490004657962-euw2</code>)</td>
+  </tr>
+  <tr>
+    <td>S3→Iceberg</td>
+    <td><code>{env}-arrange-parquet-processing</code> +
+      <strong>NEW</strong> <code>cash_balance_legacy.json</code></td>
+    <td><span class="pill pill-new">NEW JSON</span></td>
+    <td>Clone <code>self_exclusion.json</code>; PK
+      <code>player_bk, balance_date</code>;
+      <code>upsert_nocheck</code> →
+      <code>dimension_cash_balance_legacy</code></td>
+  </tr>
+  <tr>
+    <td>Iceberg→Redshift</td>
+    <td><code>uk_digital_dimension_cash_balance</code> +
+      <strong>NEW</strong> initial_load tip</td>
+    <td><span class="pill pill-new">NEW tip</span></td>
+    <td>One MERGE of full legacy
+      <code>balance_date &lt; cutoff</code>; watch <strong>120 min</strong>
+      timeout (C4)</td>
+  </tr>
+  <tr>
+    <td>BAU after seed</td>
+    <td>Same dim job from <code>player_balances</code></td>
+    <td><span class="pill pill-ok">EXISTING</span></td>
+    <td>≥ cutoff CDC path (not a separate job)</td>
+  </tr>
+</table>
+
+<h2 id="no">1. What we are not doing</h2>
+<table>
+  <tr><th>Idea</th><th>Verdict</th><th>Why</th></tr>
+  <tr>
+    <td>Glue interactive / notebook load to Redshift</td>
+    <td><span class="pill pill-bad">NO for gold</span></td>
+    <td>No TF script path, no JobControl, no repeatable arrange/MERGE, no audit</td>
+  </tr>
+  <tr>
+    <td>Direct Redshift COPY from SQL</td>
+    <td><span class="pill pill-bad">NO</span></td>
+    <td>Skips PlayerBK mapping, Iceberg legacy, date gate vs camera</td>
+  </tr>
+  <tr>
+    <td>~26 monthly extracts “because Glue can’t do 42M”</td>
+    <td><span class="pill pill-warn">NOT REQUIRED</span></td>
+    <td>Glue 48h is fine; months are only resume/BAU insurance</td>
+  </tr>
+  <tr>
+    <td>One extract + arrange + dim MERGE</td>
+    <td><span class="pill pill-ok">YES</span></td>
+    <td>Same stack as self_exclusion; simplest correct lift</td>
+  </tr>
+</table>
+
+<h2 id="deps">2. Dependencies (cannot skip)</h2>
+<table>
+  <tr><th>Dep</th><th>Why</th><th>If skipped</th></tr>
+  <tr>
+    <td>Cutoff locked (Jul 1 vs Jun 16)</td>
+    <td>Stops legacy/camera fighting on same PK</td>
+    <td>Silent overwrite or dupes</td>
+  </tr>
+  <tr>
+    <td><code>vCashBalance</code> / <strong>PlayerBK</strong></td>
+    <td>Gold key is <code>player_bk</code></td>
+    <td>Wrong ID space</td>
+  </tr>
+  <tr>
+    <td><code>cash_balance_legacy.json</code> + arrange</td>
+    <td>Platform land path</td>
+    <td>Orphan parquet; no Iceberg table</td>
+  </tr>
+  <tr>
+    <td>Dim <strong>initial_load</strong> tip</td>
+    <td>Today’s job only reads <code>player_balances</code></td>
+    <td>Iceberg legacy never reaches gold</td>
+  </tr>
+  <tr>
+    <td>Date-gated MERGE</td>
+    <td>Legacy <code>&lt; cutoff</code> only</td>
+    <td>Clobbers camera</td>
+  </tr>
+  <tr>
+    <td>DE-9554 camera tip still good</td>
+    <td>BAU change-only path</td>
+    <td>Historic seed on broken camera</td>
+  </tr>
+  <tr>
+    <td>Watermark: epoch for seed, then restore CDC</td>
+    <td>Initial_load then camera continue</td>
+    <td>Wrong window reprocessed</td>
+  </tr>
+  <tr>
+    <td>Compare PK → <code>player_bk, balance_date</code></td>
+    <td>Profile today is <code>player_bk</code> only</td>
+    <td>Historic validate nonsense</td>
+  </tr>
+  <tr>
+    <td>Dim timeout (120 min today)</td>
+    <td>42.7M MERGE may exceed 120</td>
+    <td>Gold hop FAIL mid-MERGE — bump timeout in TF for this job if needed</td>
+  </tr>
+  <tr>
+    <td><code>num_partitions=1</code> on one-shot extract</td>
+    <td>Avoid day-per-partition JDBC storm</td>
+    <td>Unity HEAP meltdown</td>
+  </tr>
+</table>
+
+<h2 id="you">3. What YOU do</h2>
+<div class="step">
+  <strong>0.</strong> Andrew: cutoff · JDBC host · BAU for one multi-hour HEAP scan ·
+  confirm <code>vCashBalance</code> has PlayerBK.
+</div>
+<div class="step">
+  <strong>1.</strong> ENG ships JSON + dim tip → you Jenkins-apply DEV.
+</div>
+<div class="step">
+  <strong>2. (optional but smart)</strong> Tiny DEV proof first —
+  e.g. extract <strong>2024-05 only</strong> (~1.43M) → arrange → initial_load
+  spot-check 5 players. If that works, go one-shot for the rest
+  (or one-shot the full range including May).
+</div>
+<div class="step">
+  <strong>3.</strong> Off-peak: <strong>one</strong> full extract
+  (see EXAMPLE) → wait SUCCEEDED → SQL COUNT vs S3.
+</div>
+<div class="step">
+  <strong>4.</strong> Arrange → Athena ≈ SQL pre-cutoff count.
+</div>
+<div class="step">
+  <strong>5.</strong> Epoch watermark → dim once (MERGE) → check gold count
+  + zero duplicate keys → restore watermark → camera ≥2×.
+</div>
+<div class="step">
+  <strong>6.</strong> Validate (below) → Jira → prod same path with permission.
+</div>
+
+<h2 id="extract">4. One-shot extract — EXAMPLE</h2>
+<div class="exbox">
+  <p class="lbl">EXAMPLE — full pre-Jul window (Jul cutoff)</p>
+<pre class="ex">Job: {env}-sql-server-extraction
+
+--jdbc_url = jdbc:sqlserver://&lt;host&gt;;databaseName=EnterpriseDataMartUnity
+--partition_column = BalanceDate
+--partition_column_type = date
+--start_value = 2021-03-01
+--end_value = 2025-07-01
+--num_partitions = 1          # CRITICAL — do not omit
+--fetch_size = 100000
+--s3_output_path = s3://raw-dp-dev-767828768594-euw2/sql-server-extraction/CashBalance/segment=pre_cutoff/
+--segment_id = cash_balance_pre_cutoff
+--use_nolock = true
+--query_template =
+SELECT PlayerBK, Balance, BalanceDate
+FROM Dimension.vCashBalance WITH (NOLOCK)
+WHERE BalanceDate &gt;= '{start}' AND BalanceDate &lt; '{end}'
+
+# workers/timeout = defaults (G.2X×10, 48h) — enough for ~42.7M / 2.7GB
+# Prod path is the same shape:
+#   s3://raw-dp-prod-490004657962-euw2/sql-server-extraction/CashBalance/segment=pre_cutoff/
+Expected SQL COUNT ≈ 42706989</pre>
+</div>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — prove extract</p>
+<pre class="ex">SQL:
+  SELECT COUNT(*) FROM Dimension.CashBalance WITH (NOLOCK)
+  WHERE BalanceDate &gt;= '2021-03-01' AND BalanceDate &lt; '2025-07-01';
+  → 42706989
+
+S3/Athena: count parquet under segment=pre_cutoff → ~42706989
+PASS if within tiny delta (empty partitions / retries)</pre>
+</div>
+
+<h2 id="json">5. JSON + gold tip — EXAMPLE</h2>
+<p><strong>Path:</strong>
+<code>migration-config/uk/digital/enterprisedatamartunity/cash_balance_legacy.json</code></p>
+<pre class="ex">{
+  "country": "UK",
+  "channel": "Digital",
+  "source": {
+    "s3": { "path": "sql-server-extraction/CashBalance", "format": "parquet" }
+  },
+  "targets": {
+    "glue": {
+      "catalog": "AwsDataCatalog",
+      "database": "{env}_dp_dwh_uk_digital",
+      "table": "dimension_cash_balance_legacy"
+    }
+  },
+  "mappings": {
+    "PlayerBK": "player_bk",
+    "Balance": "balance",
+    "BalanceDate": "balance_date"
+  },
+  "add_unique_id": false,
+  "primary_key": "player_bk, balance_date",
+  "insert_pattern": "upsert_nocheck",
+  "has_row_hash": false
+}</pre>
+
+<pre class="ex"># Dim tip (self_exclusion style)
+if watermark == 1970-01-01:
+    MERGE INTO gold FROM dimension_cash_balance_legacy
+    WHERE balance_date &lt; '{CUTOFF}'
+# then camera from player_balances for days &gt;= CUTOFF
+
+# If MERGE times out at 120 min: raise this job's timeout in TF
+# (prod fact_uk_digital_timeout = 120; _large = 240) before re-run</pre>
+
+<h2 id="test">6. Minimum testing before Done</h2>
+<table>
+  <tr><th>#</th><th>Test</th><th>PASS</th></tr>
+  <tr>
+    <td>T1</td>
+    <td>SQL COUNT window = S3/Athena legacy count</td>
+    <td>~42.7M (or ~41.5M if Jun-16 cutoff)</td>
+  </tr>
+  <tr>
+    <td>T2</td>
+    <td>Gold <code>COUNT(*) WHERE balance_date &lt; cutoff</code></td>
+    <td>≈ legacy count</td>
+  </tr>
+  <tr>
+    <td>T3</td>
+    <td>Duplicate PK check on gold</td>
+    <td>0 rows</td>
+  </tr>
+  <tr>
+    <td>T4</td>
+    <td>Camera slice ≥ cutoff still looks like BAU (spot players)</td>
+    <td>Not wiped / not mixed with SQL load-stamps</td>
+  </tr>
+  <tr>
+    <td>T5</td>
+    <td>Compare with PK <code>player_bk, balance_date</code>
+      (fix YAML first)</td>
+    <td>BK overlap on sample / full pre-cutoff</td>
+  </tr>
+  <tr>
+    <td>T6</td>
+    <td>One camera run after seed still SUCCEEDED</td>
+    <td>DE-9554 path alive</td>
+  </tr>
+</table>
+
+<div class="exbox">
+  <p class="lbl">EXAMPLE — T3 SQL</p>
+<pre class="ex">SELECT player_bk, balance_date, COUNT(*) c
+FROM dimension.cash_balance
+GROUP BY 1, 2
+HAVING COUNT(*) &gt; 1;
+-- expect 0 rows</pre>
+</div>
+
+<h2 id="fallback">7. Fallback if one extract fails</h2>
+<p>Only if Andrew/DBA refuse the multi-hour HEAP scan, or the one-shot
+  Glue run dies mid-flight: split into a few large chunks (e.g. yearly),
+  still with <code>num_partitions=1</code>, serial. Not 26 months by default.</p>
+
+<h2 id="merge">8. MERGE vs UNION</h2>
+<p><strong>MERGE</strong> date-gated (legacy &lt; cutoff). Blind UNION duplicates
+  overlapping keys. Interactive UNION into gold = same problem + no control.</p>
+
+<h2 id="open">9. Open with Andrew</h2>
+<ul>
+  <li>Cutoff Jul 1 vs 16 Jun</li>
+  <li>BAU OK for <strong>one</strong> off-peak full HEAP extract with
+    <code>num_partitions=1</code></li>
+  <li>JDBC host + <code>vCashBalance</code> PlayerBK</li>
+  <li>OK to bump cash_balance dim timeout if 120 min is too short for MERGE</li>
+</ul>
+
+<h2 id="jira">10. Jira / Teams paste</h2>
+<div class="jira-paste">
+<p><strong>DE-9654 — One-shot (single-window) extract — caveats</strong></p>
+<p><strong>Is it possible?</strong> <strong>Yes.</strong> Glue
+<strong>sql-server-extraction</strong> (G.2X×10, 48h) can pull the full
+pre-cutoff window (~42.7M / ~2.7 GB HEAP) in one run. Same platform path as
+yearly: EXISTING extract → EXISTING <strong>arrange-parquet-processing</strong>
++ NEW <strong>cash_balance_legacy.json</strong> → EXISTING
+<strong>uk_digital_dimension_cash_balance</strong> with NEW initial-load tip
+(date-gated MERGE), then BAU continues from <strong>player_balances</strong>
+for ≥ cutoff.</p>
+<p><strong>Caveats (why it is not “free”):</strong></p>
+<ul>
+  <li><strong>HEAP long scan</strong> — multi-hour SQL load; needs off-peak + BAU OK.</li>
+  <li><strong>num_partitions=1 mandatory</strong> — with date partitions, omitting it ≈ one JDBC scan per day (~1,500+) and will stress Unity.</li>
+  <li><strong>Poor resume</strong> — fail mid-flight usually means re-do the whole window (or clean S3 segment).</li>
+  <li><strong>Gold MERGE timeout</strong> — dim is 120 min today; one 42.7M MERGE may need a TF timeout bump.</li>
+  <li><strong>No mid-window validation</strong> — you only prove counts after the full load.</li>
+</ul>
+<p><strong>Still to do:</strong> ship <strong>cash_balance_legacy.json</strong> +
+dim initial-load tip; lock cutoff / JDBC / PlayerBK; Andrew BAU OK for one
+HEAP scan; optional dim timeout bump; then extract → arrange → MERGE → BAU ≥2×.</p>
+<p><strong>Fallback:</strong> if BAU/resume/timeout risk is too high → year-by-year
+(~5 loops, same jobs/JSON).</p>
+<p><strong>Open:</strong> cutoff; BAU for one-shot HEAP; JDBC /
+<strong>vCashBalance</strong> PlayerBK; dim timeout bump if needed.</p>
+</div>
+
+<div class="jira-paste">
+<p>Hi <strong>Andrew</strong>,</p>
+<p>Re <strong>DE-9654</strong> — a <strong>single-window extract</strong> is
+<strong>possible</strong> (Glue 48h covers ~42.7M), but caveats are: long HEAP
+scan on SQL, must set <strong>num_partitions=1</strong> (else date fan-out),
+weak resume if it fails mid-run, and the gold MERGE may need a dim timeout bump
+above 120 min. Same jobs/JSON either way. Please confirm if BAU can accept one
+off-peak full scan, or prefer year-by-year.</p>
+<p>https://betfred.atlassian.net/browse/DE-9654</p>
+</div>
+
+<footer>DE-9654 · one-shot extract preferred · 2026-09-09</footer>
+</div>
+</body>
+</html>
