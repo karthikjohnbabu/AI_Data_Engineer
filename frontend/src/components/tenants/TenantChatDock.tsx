@@ -39,7 +39,7 @@ export function TenantChatDock({ tenantId }: { tenantId: string }) {
         style={{ background: theme.accent, color: theme.onAccent }}
       >
         <MessageSquare className="h-4 w-4" />
-        DE chat
+        Newton
       </button>
 
       {open && (
@@ -56,9 +56,9 @@ export function TenantChatDock({ tenantId }: { tenantId: string }) {
             style={{ borderColor: theme.railBorder }}
           >
             <div>
-              <p className="text-sm font-semibold">Tenant DE assistant</p>
+              <p className="text-sm font-semibold">Newton</p>
               <p className="text-[11px]" style={{ color: theme.muted }}>
-                Modelling · reports · skills/rules (menus unchanged)
+                Tenant-scoped · {tenantId}
               </p>
             </div>
             <button type="button" onClick={() => setOpen(false)} style={{ color: theme.muted }}>
@@ -95,7 +95,7 @@ export function TenantChatDock({ tenantId }: { tenantId: string }) {
               onKeyDown={(e) => {
                 if (e.key === "Enter") void send();
               }}
-              placeholder="Ask the DE assistant…"
+              placeholder="Ask Newton…"
               className="flex-1 rounded-lg border bg-transparent px-3 py-2 text-sm outline-none"
               style={{ borderColor: theme.railBorder, color: theme.text }}
             />

@@ -77,7 +77,7 @@ def _advice(tenant_id: str, message: str) -> str:
             "`memory/suggestions.yaml` — menus stay unchanged."
         )
     return (
-        f"Newton DE assistant for **{tenant_id}**. Ask about modelling, lineage, "
+        f"Newton for **{tenant_id}**. Ask about modelling, lineage, "
         "Power BI reports, or improving skills/rules. "
         "Ticket work: open a fix → checklist → Run phase (e.g. place2). "
         f"Skills: {len(skills)} · Rules: {len(rules)} · Dims: {len(dims)}."
