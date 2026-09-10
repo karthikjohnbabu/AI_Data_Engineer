@@ -1,0 +1,8 @@
+id: midlothian-domain-signoff
+name: New Midlothian domain is not done after Athena rows
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: New Midlothian domain is not done after Athena rows
+guidance_file: guidance/midlothian-domain-signoff.md

@@ -1,0 +1,8 @@
+id: always-dev-before-uat
+name: Always test DEV fully before pushing to UAT
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: Always test DEV fully before pushing to UAT
+guidance_file: guidance/always-dev-before-uat.md

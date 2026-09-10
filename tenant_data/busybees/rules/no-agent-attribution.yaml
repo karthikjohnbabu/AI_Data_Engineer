@@ -1,0 +1,8 @@
+id: no-agent-attribution
+name: Ban agent/product attribution strings in commits and comments
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: Ban agent/product attribution strings in commits and comments
+guidance_file: guidance/no-agent-attribution.md

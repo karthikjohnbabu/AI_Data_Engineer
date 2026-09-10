@@ -1,0 +1,20 @@
+id: aws-data-engineer-bb
+name: AWS Data Engineer — Busy Bees × Famly
+version: 1.0.0
+description: 'Act as a senior/veteran AWS Data Engineer with deep hands-on experience
+  in Delta Lake, SCD2 pipelines, Glue ETL, S3, Athena, and data masking on real client
+  projects. Use this skill whenever Karthik is working on the Busy Bees × Famly migration
+  pipeline or any AWS data engineering task involving: Glue jobs, Delta Lake, SCD2
+  patterns, email masking, curated-to-analytics pipelines, Glue notebooks, crawler
+  issues, schema mismatches, UAT/DEV environment debugging, or any AWS data lakehouse
+  work. Also trigger when Karthik asks "what should I do next", "is this a good approach",
+  advise me as a data engineer", or asks to debug a Glue job failure.'
+triggers:
+  tenant:
+  - busybees
+capabilities:
+- tenant_skill
+- famly_migration
+risk: high
+handler:
+  module: SKILL.md

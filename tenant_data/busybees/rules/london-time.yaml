@@ -1,0 +1,8 @@
+id: london-time
+name: Use London time in all project communication; never IST
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: Use London time in all project communication; never IST
+guidance_file: guidance/london-time.md

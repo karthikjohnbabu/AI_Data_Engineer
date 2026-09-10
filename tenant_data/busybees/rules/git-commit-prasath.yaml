@@ -1,0 +1,9 @@
+id: git-commit-prasath
+name: Git commits must use Prasath as author and committer (no global git config change)
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: Git commits must use Prasath as author and committer (no global git config
+    change)
+guidance_file: guidance/git-commit-prasath.md

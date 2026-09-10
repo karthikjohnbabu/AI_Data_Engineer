@@ -1,0 +1,9 @@
+id: never-touch-prod
+name: Never touch PROD unless Prasath explicitly directs it
+scope:
+  environment: prod
+conditions: {}
+action:
+  require_human_approval: true
+  message: Never touch PROD unless Prasath explicitly directs it
+guidance_file: guidance/never-touch-prod.md

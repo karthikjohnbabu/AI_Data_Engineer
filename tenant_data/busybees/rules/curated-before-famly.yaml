@@ -1,0 +1,8 @@
+id: curated-before-famly
+name: Always run the curated job before the famly reverse job
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: Always run the curated job before the famly reverse job
+guidance_file: guidance/curated-before-famly.md

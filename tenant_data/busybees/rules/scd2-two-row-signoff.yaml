@@ -1,0 +1,8 @@
+id: scd2-two-row-signoff
+name: SCD2 sign-off requires expired plus current rows
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: SCD2 sign-off requires expired plus current rows
+guidance_file: guidance/scd2-two-row-signoff.md

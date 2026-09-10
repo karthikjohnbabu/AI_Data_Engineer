@@ -1,0 +1,8 @@
+id: archive-before-inplace-fix
+name: Archive the Delta table before any in-place fix
+scope: {}
+conditions: {}
+action:
+  require_human_approval: false
+  message: Archive the Delta table before any in-place fix
+guidance_file: guidance/archive-before-inplace-fix.md
